@@ -1,2 +1,3 @@
-# Default reviewer for everything in this repo.
-*       @kitsuno-ai
+# Default reviewer for all paths.
+# Members of @kitsuno-ai/maintainers are auto-requested on every PR.
+*       @kitsuno-ai/maintainers
