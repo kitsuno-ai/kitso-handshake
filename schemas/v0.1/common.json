@@ -1,12 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kitsuno.ai/handshake/v0.1/common.json",
-  "title": "Kitso Handshake — common types",
-  "description": "Shared enums and reusable type definitions for Kitso Handshake v0.1.",
+  "title": "Kitso Handshake v0.1 — common types",
+  "description": "Shared enums and reusable types referenced by the other v0.1 schemas. Not a standalone payload.",
+  "type": "object",
   "$defs": {
     "ConsentTier": {
-      "title": "ConsentTier",
-      "description": "Disclosure policy for a single field or operation. See spec §5 (Consent grammar).",
+      "title": "Consent tier",
+      "description": "The four-tier classification from the consent grammar annex (§5).",
       "type": "string",
       "enum": [
         "auto_disclosable",
@@ -16,8 +17,8 @@
       ]
     },
     "TrustTier": {
-      "title": "TrustTier",
-      "description": "Verifiability of a claimed agent identity. See spec §6 (Trust tiers).",
+      "title": "Trust tier",
+      "description": "The five-tier hierarchy from the trust-tiers annex (§6).",
       "type": "string",
       "enum": [
         "domain_verified",
@@ -27,123 +28,132 @@
         "anonymous"
       ]
     },
-    "PrincipalType": {
-      "title": "PrincipalType",
-      "description": "What kind of principal an agent represents.",
-      "type": "string",
-      "enum": [
-        "individual",
-        "employee",
-        "hiring_entity"
-      ]
-    },
     "EmploymentType": {
-      "title": "EmploymentType",
+      "title": "Employment type",
+      "description": "Open enum — implementations may extend with their own values; the listed values are the canonical set for v0.1.",
       "type": "string",
-      "enum": [
+      "examples": [
         "permanent",
         "contract",
+        "temporary",
         "internship",
         "apprenticeship",
-        "temporary",
-        "internal_mobility"
+        "freelance"
+      ]
+    },
+    "PrincipalDecision": {
+      "title": "Principal decision on an invitation",
+      "type": "string",
+      "enum": [
+        "accept",
+        "decline",
+        "request_more_information",
+        "propose_alternative_terms"
       ]
     },
     "AgentIdentifier": {
-      "title": "AgentIdentifier",
-      "description": "A stable agent identifier. Recommended pattern: `<namespace>/<role>/<id>` (e.g. `kitsuno.agent/u/seeker_xyz`, `acme.agent/v/eng-42`).",
+      "title": "Agent identifier",
+      "description": "Stable agent identifier, recommended pattern scheme:identifier (e.g., 'kitsuno.agent/u/<id>' or '<domain>.agent/v/<id>').",
       "type": "string",
-      "minLength": 3,
-      "maxLength": 256,
-      "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)+$"
+      "minLength": 1,
+      "examples": [
+        "kitsuno.agent/u/seeker_xyz",
+        "acme.agent/v/eng-42",
+        "kitsuno.agent/synthesized/tg_dachtech/abc123"
+      ]
     },
-    "ISO4217Currency": {
-      "title": "ISO4217Currency",
-      "description": "ISO 4217 three-letter currency code.",
+    "IsoDateTime": {
+      "title": "RFC 3339 / ISO 8601 date-time",
       "type": "string",
-      "pattern": "^[A-Z]{3}$"
+      "format": "date-time"
     },
-    "ISO31661Alpha2": {
-      "title": "ISO31661Alpha2",
-      "description": "ISO 3166-1 alpha-2 country code.",
+    "IsoCountryCode": {
+      "title": "ISO 3166-1 alpha-2 country code",
       "type": "string",
       "pattern": "^[A-Z]{2}$"
     },
-    "ISO6391Language": {
-      "title": "ISO6391Language",
-      "description": "ISO 639-1 two-letter language code.",
+    "IsoLanguageCode": {
+      "title": "ISO 639-1 two-letter language code",
       "type": "string",
       "pattern": "^[a-z]{2}$"
     },
-    "MoneyAmount": {
-      "title": "MoneyAmount",
+    "IsoCurrencyCode": {
+      "title": "ISO 4217 three-letter currency code",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "Money": {
+      "title": "Money amount with currency and period",
       "type": "object",
+      "required": ["amount", "currency"],
       "properties": {
-        "amount": {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        "currency": {
-          "$ref": "#/$defs/ISO4217Currency"
-        },
+        "amount": { "type": "number", "minimum": 0 },
+        "currency": { "$ref": "#/$defs/IsoCurrencyCode" },
         "period": {
           "type": "string",
-          "enum": [
-            "year",
-            "month",
-            "day",
-            "hour",
-            "project"
-          ]
+          "enum": ["hour", "day", "month", "year", "project", "one_time"]
         }
       },
-      "required": [
-        "amount",
-        "currency",
-        "period"
-      ],
+      "additionalProperties": false
+    },
+    "Geographies": {
+      "title": "Geographic scope (used in SeekerAgentCard)",
+      "type": "object",
+      "properties": {
+        "countries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IsoCountryCode" },
+          "uniqueItems": true
+        },
+        "remote_ok": { "type": "boolean" }
+      },
       "additionalProperties": false
     },
     "Geography": {
-      "title": "Geography",
+      "title": "Single geographic location (used in VacancyAgentCard)",
       "type": "object",
+      "required": ["country"],
       "properties": {
-        "country": {
-          "$ref": "#/$defs/ISO31661Alpha2"
-        },
-        "city": {
+        "country": { "$ref": "#/$defs/IsoCountryCode" },
+        "city": { "type": "string" },
+        "remote_policy": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "examples": [
+            "fully_remote",
+            "hybrid_3_days",
+            "hybrid_2_days",
+            "on_site"
+          ]
         }
       },
-      "required": [
-        "country"
-      ],
+      "additionalProperties": false
+    },
+    "LanguageProficiency": {
+      "title": "Language and CEFR-style proficiency level",
+      "type": "object",
+      "required": ["language", "level"],
+      "properties": {
+        "language": { "$ref": "#/$defs/IsoLanguageCode" },
+        "level": {
+          "type": "string",
+          "enum": ["A1", "A2", "B1", "B2", "C1", "C2", "native"]
+        }
+      },
       "additionalProperties": false
     },
     "Authorization": {
-      "title": "Authorization",
-      "description": "Per-action authorization granted by a principal to its agent. See spec §5: authorizations are mandatory-TTL, revocable, scope-bounded, and carry an explicit bindability bit.",
+      "title": "Authorization envelope (consent grammar §5)",
+      "description": "Every authorization granted by a principal to an agent carries these fields. Standing authorizations without expiry are forbidden by the protocol.",
       "type": "object",
+      "required": ["granted_at", "expires_at", "scope", "revocable"],
       "properties": {
-        "granted_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp of explicit principal grant."
-        },
-        "expires_at": {
-          "type": "string",
-          "format": "date-time",
-          "description": "TTL is mandatory; protocol forbids standing authorizations without expiry. Defaults: 90 days for general scope, 7 days for invitation-specific."
-        },
+        "granted_at": { "$ref": "#/$defs/IsoDateTime" },
+        "expires_at": { "$ref": "#/$defs/IsoDateTime" },
         "scope": {
           "type": "array",
-          "items": {
-            "type": "string"
-          },
+          "items": { "type": "string" },
           "minItems": 1,
-          "description": "Tasks or fields this authorization covers."
+          "description": "Specific Tasks or fields the authorization covers."
         },
         "revocable": {
           "type": "boolean",
@@ -152,52 +162,10 @@
         },
         "bindability": {
           "type": "string",
-          "enum": [
-            "bindable",
-            "negotiate_and_surface"
-          ],
-          "description": "Whether this authorization permits the agent to commit on behalf of the principal, or only to negotiate-and-surface back to the human."
+          "enum": ["may_bind", "negotiate_and_surface_only"],
+          "description": "Whether the authorization permits the agent to commit on the principal's behalf, or only to negotiate-and-surface."
         }
       },
-      "required": [
-        "granted_at",
-        "expires_at",
-        "scope",
-        "revocable",
-        "bindability"
-      ],
-      "additionalProperties": false
-    },
-    "Provenance": {
-      "title": "Provenance",
-      "description": "Identity verification basis for an Agent Card. See spec §6.",
-      "type": "object",
-      "properties": {
-        "tier": {
-          "$ref": "#/$defs/TrustTier"
-        },
-        "domain": {
-          "type": "string",
-          "format": "hostname",
-          "description": "Verified entity domain (when tier is domain_verified)."
-        },
-        "agent_dns": {
-          "type": "string",
-          "description": "`.agent`-namespace identifier (when tier is agent_resolved)."
-        },
-        "original_source": {
-          "type": "string",
-          "format": "uri",
-          "description": "URI of the public source from which a transient Agent was synthesized (when tier is third_party_attested)."
-        },
-        "attested_by": {
-          "$ref": "#/$defs/AgentIdentifier",
-          "description": "Identifier of the attesting agent (when tier is third_party_attested)."
-        }
-      },
-      "required": [
-        "tier"
-      ],
       "additionalProperties": false
     }
   }

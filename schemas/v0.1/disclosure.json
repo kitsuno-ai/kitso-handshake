@@ -1,70 +1,69 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kitsuno.ai/handshake/v0.1/disclosure.json",
-  "title": "Disclosure artifact",
-  "description": "Structured response from a Seeker Agent to a Vacancy Agent indicating the principal's response to an Invitation. See spec §3.6 and §4.4.",
+  "title": "Kitso Handshake v0.1 — Disclosure artifact",
+  "description": "A structured response from a Seeker Agent to a Vacancy Agent indicating the Seeker's principal's response to an Invitation. Carried as the Artifact of an A2A Task of type VacancyDisclosure.",
   "type": "object",
-  "properties": {
-    "disclosure_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "in_response_to": {
-      "type": "string",
-      "minLength": 1,
-      "description": "The `invitation_id` this disclosure responds to."
-    },
-    "from_seeker_agent": {
-      "$ref": "common.json#/$defs/AgentIdentifier"
-    },
-    "issued_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "principal_decision": {
-      "type": "string",
-      "enum": [
-        "accept",
-        "decline",
-        "request_more_information",
-        "propose_alternative_terms"
-      ]
-    },
-    "principal_confirmation": {
-      "type": "object",
-      "description": "Evidence that a human principal confirmed this disclosure. Required when the corresponding Invitation set `human_in_loop_required: true`.",
-      "properties": {
-        "confirmed_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "confirmation_method": {
-          "type": "string",
-          "description": "How the principal confirmed. e.g. `in_app_explicit`, `email_link_click`, `signed_assertion`."
-        }
-      },
-      "required": [
-        "confirmed_at",
-        "confirmation_method"
-      ],
-      "additionalProperties": false
-    },
-    "newly_disclosed": {
-      "type": "object",
-      "description": "Fields the seeker has newly chosen to reveal to the vacancy in this disclosure.",
-      "additionalProperties": true
-    },
-    "next_step_requested": {
-      "type": "string",
-      "description": "What the seeker is asking the vacancy to do next."
-    }
-  },
   "required": [
     "disclosure_id",
     "in_response_to",
     "from_seeker_agent",
     "issued_at",
-    "principal_decision"
+    "principal_decision",
+    "principal_confirmation"
   ],
-  "additionalProperties": false
+  "properties": {
+    "disclosure_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for this disclosure, scoped to the issuing Seeker Agent."
+    },
+    "in_response_to": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The invitation_id this disclosure responds to."
+    },
+    "from_seeker_agent": { "$ref": "common.json#/$defs/AgentIdentifier" },
+    "issued_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "principal_decision": { "$ref": "common.json#/$defs/PrincipalDecision" },
+    "principal_confirmation": {
+      "type": "object",
+      "required": ["confirmed_at", "confirmation_method"],
+      "description": "Evidence that the principal explicitly confirmed this decision. Required because §5 forbids agents from binding on behalf of the principal without explicit confirmation.",
+      "properties": {
+        "confirmed_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+        "confirmation_method": {
+          "type": "string",
+          "examples": [
+            "in_app_explicit",
+            "email_reply",
+            "voice_confirmation",
+            "signed_message"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "newly_disclosed": {
+      "type": "object",
+      "description": "Additional Seeker information consented-to by the principal in response to this specific invitation. Each top-level key is the field domain (constraints, language_proficiency, etc.) and the value is the disclosed payload.",
+      "additionalProperties": true
+    },
+    "next_step_requested": {
+      "type": "string",
+      "description": "What the Seeker side asks the Vacancy side to do next (e.g., 'vacancy_agent_disclose_company_and_comp')."
+    },
+    "alternative_terms_proposed": {
+      "type": "object",
+      "description": "Used when principal_decision is propose_alternative_terms. Free-form payload describing the counter-proposal.",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "principal_decision": { "const": "propose_alternative_terms" } }, "required": ["principal_decision"] },
+      "then": { "required": ["alternative_terms_proposed"] }
+    }
+  ]
 }

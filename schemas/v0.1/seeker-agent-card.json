@@ -1,160 +1,112 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kitsuno.ai/handshake/v0.1/seeker-agent-card.json",
-  "title": "Seeker Agent Card extension (kitso.handshake.v1)",
-  "description": "The kitso.handshake.v1 extension block for an A2A AgentCard representing a job seeker. See spec §4.1.",
+  "title": "Kitso Handshake v0.1 — Seeker Agent Card extension",
+  "description": "Schema for the kitso.handshake.v1 extension key on an A2A AgentCard representing a job seeker. Validates the wrapper object containing the kitso.handshake.v1 key. The host AgentCard's other fields are out of scope here and validated by A2A.",
   "type": "object",
+  "required": ["kitso.handshake.v1"],
   "properties": {
     "kitso.handshake.v1": {
       "type": "object",
+      "required": ["principal_type", "stance", "scope", "consent_policy"],
       "properties": {
         "principal_type": {
-          "$ref": "common.json#/$defs/PrincipalType",
-          "description": "Must be `individual` or `employee` for seekers."
+          "type": "string",
+          "enum": ["individual", "employee", "contractor"]
         },
         "stance": {
           "type": "object",
-          "description": "The seeker's current openness to invitations.",
+          "required": ["open_to_invitations", "ttl"],
           "properties": {
-            "open_to_invitations": {
-              "type": "boolean"
-            },
-            "active_search": {
-              "type": "boolean"
-            },
-            "ttl": {
-              "type": "string",
-              "format": "date-time",
-              "description": "When this stance expires and must be renewed."
-            }
+            "open_to_invitations": { "type": "boolean" },
+            "active_search": { "type": "boolean" },
+            "open_to_internal_mobility": { "type": "boolean" },
+            "ttl": { "$ref": "common.json#/$defs/IsoDateTime" }
           },
-          "required": [
-            "open_to_invitations",
-            "ttl"
-          ],
           "additionalProperties": false
         },
         "scope": {
           "type": "object",
-          "description": "What kind of opportunities the seeker is open to.",
           "properties": {
             "role_families": {
               "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "minItems": 1
+              "items": { "type": "string" },
+              "uniqueItems": true
             },
             "seniority": {
               "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "minItems": 1
+              "items": { "type": "string" },
+              "uniqueItems": true
             },
             "employment_types": {
               "type": "array",
-              "items": {
-                "$ref": "common.json#/$defs/EmploymentType"
-              },
-              "minItems": 1
+              "items": { "$ref": "common.json#/$defs/EmploymentType" },
+              "uniqueItems": true
             },
-            "geographies": {
-              "type": "object",
-              "properties": {
-                "countries": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "common.json#/$defs/ISO31661Alpha2"
-                  }
-                },
-                "remote_ok": {
-                  "type": "boolean"
-                }
-              },
-              "additionalProperties": false
-            },
+            "geographies": { "$ref": "common.json#/$defs/Geographies" },
             "languages_for_invitation": {
               "type": "array",
-              "items": {
-                "$ref": "common.json#/$defs/ISO6391Language"
-              },
-              "minItems": 1,
-              "description": "Languages in which the seeker accepts invitations."
+              "items": { "$ref": "common.json#/$defs/IsoLanguageCode" },
+              "uniqueItems": true,
+              "description": "Languages in which the seeker is willing to receive invitations."
             }
           },
-          "required": [
-            "role_families"
-          ],
           "additionalProperties": false
         },
         "constraints": {
           "type": "object",
-          "description": "Hard filters; opportunities outside these are not invited.",
           "properties": {
-            "compensation_floor": {
-              "$ref": "common.json#/$defs/MoneyAmount"
-            },
+            "compensation_floor": { "$ref": "common.json#/$defs/Money" },
             "company_types_excluded": {
               "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "items": { "type": "string" },
+              "uniqueItems": true,
+              "description": "Industries or company types the seeker excludes (e.g., 'defense', 'tobacco')."
             },
             "employment_constraints": {
               "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "items": { "type": "string" },
+              "uniqueItems": true,
+              "examples": [["no_on_call", "no_relocation", "prefers_async_communication"]]
             }
           },
           "additionalProperties": false
         },
         "consent_policy": {
           "type": "object",
-          "description": "Per-field disclosure policy. See spec §5 for the four-tier consent grammar.",
+          "required": [
+            "agent_may_disclose_without_confirmation",
+            "agent_must_confirm_before_disclosing",
+            "human_only_contact_for"
+          ],
           "properties": {
             "agent_may_disclose_without_confirmation": {
               "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Fields tier `auto_disclosable`."
+              "items": { "type": "string" },
+              "description": "Field paths classified as auto_disclosable for this seeker."
             },
             "agent_must_confirm_before_disclosing": {
               "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Fields tier `confirmation_required`."
+              "items": { "type": "string" },
+              "description": "Field paths classified as confirmation_required for this seeker."
             },
             "human_only_contact_for": {
               "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Operations tier `human_only`."
+              "items": { "type": "string" },
+              "description": "Activities classified as human_only — agent must hand off to direct human contact."
+            },
+            "forbidden_disclosures": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Field paths the agent must never disclose, regardless of request."
             }
           },
           "additionalProperties": false
         },
-        "trust_tier_required_minimum": {
-          "$ref": "common.json#/$defs/TrustTier",
-          "description": "Minimum trust tier a Vacancy Agent must satisfy to be allowed to issue invitations. Below-tier agents MUST be silently ignored."
-        }
+        "trust_tier_required_minimum": { "$ref": "common.json#/$defs/TrustTier" }
       },
-      "required": [
-        "principal_type",
-        "stance",
-        "scope",
-        "consent_policy",
-        "trust_tier_required_minimum"
-      ],
       "additionalProperties": false
     }
   },
-  "required": [
-    "kitso.handshake.v1"
-  ],
   "additionalProperties": true
 }

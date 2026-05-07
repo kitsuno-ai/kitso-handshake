@@ -1,114 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kitsuno.ai/handshake/v0.1/invitation.json",
-  "title": "Invitation artifact",
-  "description": "Structured proposal from a Vacancy Agent to a Seeker Agent. The only mechanism by which a Vacancy Agent contacts a Seeker Agent. See spec §3.5 and §4.3.",
+  "title": "Kitso Handshake v0.1 — Invitation artifact",
+  "description": "A structured proposal from a Vacancy Agent to a Seeker Agent that the Seeker's principal consider engaging with the Vacancy. Carried as the Artifact of an A2A Task of type SeekerInvitation.",
   "type": "object",
-  "properties": {
-    "invitation_id": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Globally unique identifier for this invitation."
-    },
-    "from_vacancy_agent": {
-      "$ref": "common.json#/$defs/AgentIdentifier"
-    },
-    "to_seeker_agent": {
-      "$ref": "common.json#/$defs/AgentIdentifier"
-    },
-    "issued_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "expires_at": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "match_rationale": {
-      "type": "object",
-      "description": "Why this invitation was sent to this seeker.",
-      "properties": {
-        "seeker_signals_matched": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "vacancy_signals_matched": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "score": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "narrative": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "narrative"
-      ],
-      "additionalProperties": false
-    },
-    "disclosed_so_far": {
-      "type": "object",
-      "description": "Snapshot of what the Vacancy Agent has disclosed about itself and the hiring entity at this point in the flow.",
-      "properties": {
-        "vacancy": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "hiring_entity": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "next_step_at_stake": {
-      "type": "object",
-      "description": "What the seeker would reveal and what the vacancy would reveal if the seeker accepts. Presented to the principal as the basis for human consent.",
-      "properties": {
-        "step": {
-          "type": "string",
-          "minLength": 1
-        },
-        "binding": {
-          "type": "boolean",
-          "description": "Whether accepting this step is a binding commitment."
-        },
-        "what_seeker_reveals_if_accepts": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "what_vacancy_reveals_if_accepted": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "step",
-        "binding"
-      ],
-      "additionalProperties": false
-    },
-    "human_in_loop_required": {
-      "type": "boolean",
-      "description": "Whether the seeker's principal must explicitly confirm before the Seeker Agent may reply with a Disclosure."
-    }
-  },
   "required": [
     "invitation_id",
     "from_vacancy_agent",
@@ -116,8 +11,87 @@
     "issued_at",
     "expires_at",
     "match_rationale",
+    "disclosed_so_far",
     "next_step_at_stake",
     "human_in_loop_required"
   ],
+  "properties": {
+    "invitation_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for this invitation, scoped to the issuing Vacancy Agent."
+    },
+    "from_vacancy_agent": { "$ref": "common.json#/$defs/AgentIdentifier" },
+    "to_seeker_agent": { "$ref": "common.json#/$defs/AgentIdentifier" },
+    "issued_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "expires_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "match_rationale": {
+      "type": "object",
+      "required": ["score", "narrative"],
+      "properties": {
+        "seeker_signals_matched": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Signals on the Seeker side that the Vacancy Agent considered when issuing this invitation."
+        },
+        "vacancy_signals_matched": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Self-reported signals on the Vacancy side that align with the Seeker's stance."
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Match score in the [0, 1] range, scale defined by the issuing agent."
+        },
+        "narrative": {
+          "type": "string",
+          "description": "Plain-language match summary suitable for surfacing to the Seeker's principal."
+        }
+      },
+      "additionalProperties": false
+    },
+    "disclosed_so_far": {
+      "type": "object",
+      "description": "Field paths the Vacancy side has revealed in this invitation, broken down by entity. Useful for the Seeker side to render what is and is not yet visible.",
+      "properties": {
+        "vacancy": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hiring_entity": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "next_step_at_stake": {
+      "type": "object",
+      "required": ["step", "binding"],
+      "description": "What happens next if the Seeker's principal accepts, and what each side reveals at that step.",
+      "properties": {
+        "step": { "type": "string" },
+        "binding": {
+          "type": "boolean",
+          "description": "Whether accepting this step creates a binding obligation for the principal. Binding steps require explicit human confirmation per the consent grammar."
+        },
+        "what_seeker_reveals_if_accepts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "what_vacancy_reveals_if_accepted": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "human_in_loop_required": {
+      "type": "boolean",
+      "description": "If true, the Seeker Agent MUST surface this invitation to the principal and obtain explicit confirmation before any reply is sent."
+    }
+  },
   "additionalProperties": false
 }
