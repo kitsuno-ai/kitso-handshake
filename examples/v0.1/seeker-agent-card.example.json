@@ -1,0 +1,69 @@
+{
+  "kitso.handshake.v1": {
+    "principal_type": "individual",
+    "stance": {
+      "open_to_invitations": true,
+      "active_search": false,
+      "ttl": "2026-12-31T23:59:59Z"
+    },
+    "scope": {
+      "role_families": [
+        "software_engineering",
+        "engineering_management"
+      ],
+      "seniority": [
+        "senior",
+        "staff",
+        "principal"
+      ],
+      "employment_types": [
+        "permanent",
+        "contract"
+      ],
+      "geographies": {
+        "countries": [
+          "CH",
+          "DE",
+          "AT"
+        ],
+        "remote_ok": true
+      },
+      "languages_for_invitation": [
+        "en",
+        "de"
+      ]
+    },
+    "constraints": {
+      "compensation_floor": {
+        "amount": 130000,
+        "currency": "EUR",
+        "period": "year"
+      },
+      "company_types_excluded": [
+        "defense",
+        "tobacco"
+      ],
+      "employment_constraints": [
+        "no_on_call",
+        "no_relocation"
+      ]
+    },
+    "consent_policy": {
+      "agent_may_disclose_without_confirmation": [
+        "role_families",
+        "geographies",
+        "seniority"
+      ],
+      "agent_must_confirm_before_disclosing": [
+        "full_name",
+        "current_employer",
+        "compensation_history"
+      ],
+      "human_only_contact_for": [
+        "interview_scheduling",
+        "offer_negotiation"
+      ]
+    },
+    "trust_tier_required_minimum": "domain_verified"
+  }
+}

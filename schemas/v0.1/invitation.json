@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.1/invitation.json",
+  "title": "Invitation artifact",
+  "description": "Structured proposal from a Vacancy Agent to a Seeker Agent. The only mechanism by which a Vacancy Agent contacts a Seeker Agent. See spec §3.5 and §4.3.",
+  "type": "object",
+  "properties": {
+    "invitation_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Globally unique identifier for this invitation."
+    },
+    "from_vacancy_agent": {
+      "$ref": "common.json#/$defs/AgentIdentifier"
+    },
+    "to_seeker_agent": {
+      "$ref": "common.json#/$defs/AgentIdentifier"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "match_rationale": {
+      "type": "object",
+      "description": "Why this invitation was sent to this seeker.",
+      "properties": {
+        "seeker_signals_matched": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "vacancy_signals_matched": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "narrative": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "narrative"
+      ],
+      "additionalProperties": false
+    },
+    "disclosed_so_far": {
+      "type": "object",
+      "description": "Snapshot of what the Vacancy Agent has disclosed about itself and the hiring entity at this point in the flow.",
+      "properties": {
+        "vacancy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hiring_entity": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "next_step_at_stake": {
+      "type": "object",
+      "description": "What the seeker would reveal and what the vacancy would reveal if the seeker accepts. Presented to the principal as the basis for human consent.",
+      "properties": {
+        "step": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding": {
+          "type": "boolean",
+          "description": "Whether accepting this step is a binding commitment."
+        },
+        "what_seeker_reveals_if_accepts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "what_vacancy_reveals_if_accepted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "step",
+        "binding"
+      ],
+      "additionalProperties": false
+    },
+    "human_in_loop_required": {
+      "type": "boolean",
+      "description": "Whether the seeker's principal must explicitly confirm before the Seeker Agent may reply with a Disclosure."
+    }
+  },
+  "required": [
+    "invitation_id",
+    "from_vacancy_agent",
+    "to_seeker_agent",
+    "issued_at",
+    "expires_at",
+    "match_rationale",
+    "next_step_at_stake",
+    "human_in_loop_required"
+  ],
+  "additionalProperties": false
+}

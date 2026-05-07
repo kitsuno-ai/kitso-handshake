@@ -1,0 +1,45 @@
+{
+  "invitation_id": "inv_20260506_abc123",
+  "from_vacancy_agent": "acme.agent/v/eng-42",
+  "to_seeker_agent": "kitsuno.agent/u/seeker_xyz",
+  "issued_at": "2026-05-06T14:22:00Z",
+  "expires_at": "2026-05-13T14:22:00Z",
+  "match_rationale": {
+    "seeker_signals_matched": [
+      "role_family",
+      "seniority",
+      "geography"
+    ],
+    "vacancy_signals_matched": [
+      "must_haves:4_of_5"
+    ],
+    "score": 0.87,
+    "narrative": "Senior backend role in Zurich, hybrid, matches stance and geography. Must-haves match 4 of 5; nice-to-haves match 1 of 3."
+  },
+  "disclosed_so_far": {
+    "vacancy": [
+      "role_family",
+      "seniority",
+      "geography",
+      "employment_type",
+      "must_haves"
+    ],
+    "hiring_entity": [
+      "industry",
+      "size_band"
+    ]
+  },
+  "next_step_at_stake": {
+    "step": "accept_invitation",
+    "binding": false,
+    "what_seeker_reveals_if_accepts": [
+      "full_constraint_list",
+      "language_proficiency"
+    ],
+    "what_vacancy_reveals_if_accepted": [
+      "hiring_entity_name",
+      "compensation_range"
+    ]
+  },
+  "human_in_loop_required": true
+}

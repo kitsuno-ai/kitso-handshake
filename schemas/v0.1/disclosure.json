@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.1/disclosure.json",
+  "title": "Disclosure artifact",
+  "description": "Structured response from a Seeker Agent to a Vacancy Agent indicating the principal's response to an Invitation. See spec §3.6 and §4.4.",
+  "type": "object",
+  "properties": {
+    "disclosure_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "in_response_to": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The `invitation_id` this disclosure responds to."
+    },
+    "from_seeker_agent": {
+      "$ref": "common.json#/$defs/AgentIdentifier"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "principal_decision": {
+      "type": "string",
+      "enum": [
+        "accept",
+        "decline",
+        "request_more_information",
+        "propose_alternative_terms"
+      ]
+    },
+    "principal_confirmation": {
+      "type": "object",
+      "description": "Evidence that a human principal confirmed this disclosure. Required when the corresponding Invitation set `human_in_loop_required: true`.",
+      "properties": {
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "confirmation_method": {
+          "type": "string",
+          "description": "How the principal confirmed. e.g. `in_app_explicit`, `email_link_click`, `signed_assertion`."
+        }
+      },
+      "required": [
+        "confirmed_at",
+        "confirmation_method"
+      ],
+      "additionalProperties": false
+    },
+    "newly_disclosed": {
+      "type": "object",
+      "description": "Fields the seeker has newly chosen to reveal to the vacancy in this disclosure.",
+      "additionalProperties": true
+    },
+    "next_step_requested": {
+      "type": "string",
+      "description": "What the seeker is asking the vacancy to do next."
+    }
+  },
+  "required": [
+    "disclosure_id",
+    "in_response_to",
+    "from_seeker_agent",
+    "issued_at",
+    "principal_decision"
+  ],
+  "additionalProperties": false
+}

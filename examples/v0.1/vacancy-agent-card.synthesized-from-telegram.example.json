@@ -1,0 +1,36 @@
+{
+  "kitso.handshake.v1": {
+    "principal_type": "hiring_entity",
+    "vacancy": {
+      "role_title": "Senior Go Engineer",
+      "role_family": "software_engineering",
+      "seniority": "senior",
+      "employment_type": "permanent",
+      "geography": {
+        "country": "DE",
+        "remote_policy": "fully_remote"
+      },
+      "compensation": {
+        "disclosed_in_invitation": false
+      },
+      "must_haves": [
+        "go_production_experience"
+      ],
+      "nice_to_haves": [],
+      "ttl": "2026-06-06T00:00:00Z"
+    },
+    "hiring_entity": {
+      "name_disclosed_in_invitation": true,
+      "name": "Startup (per Telegram post; unverified)",
+      "size_band": "1-10"
+    },
+    "consent_policy": {
+      "agent_may_invite_without_human_review": true
+    },
+    "provenance": {
+      "tier": "third_party_attested",
+      "original_source": "https://t.me/dach_tech_jobs/12345",
+      "attested_by": "kitsuno.agent/synthesizer/tg_v1"
+    }
+  }
+}

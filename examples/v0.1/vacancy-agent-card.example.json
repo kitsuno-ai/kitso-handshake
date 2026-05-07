@@ -1,0 +1,52 @@
+{
+  "kitso.handshake.v1": {
+    "principal_type": "hiring_entity",
+    "vacancy": {
+      "role_title": "Senior Backend Engineer",
+      "role_family": "software_engineering",
+      "seniority": "senior",
+      "employment_type": "permanent",
+      "geography": {
+        "country": "CH",
+        "city": "Zurich",
+        "remote_policy": "hybrid_3_days"
+      },
+      "compensation": {
+        "disclosed_in_invitation": false,
+        "range": {
+          "min": 140000,
+          "max": 180000,
+          "currency": "CHF",
+          "period": "year"
+        },
+        "disclosure_trigger": "after_seeker_accepts_invitation"
+      },
+      "must_haves": [
+        "5y+_backend_experience",
+        "production_distributed_systems"
+      ],
+      "nice_to_haves": [
+        "rust",
+        "kafka",
+        "mlops"
+      ],
+      "ttl": "2026-08-01T00:00:00Z"
+    },
+    "hiring_entity": {
+      "name_disclosed_in_invitation": false,
+      "name": "Acme Health AG",
+      "industry": "healthcare",
+      "size_band": "200-500",
+      "disclosure_trigger": "after_seeker_accepts_invitation"
+    },
+    "consent_policy": {
+      "agent_may_invite_without_human_review": false,
+      "human_in_loop_role": "hiring_manager"
+    },
+    "provenance": {
+      "tier": "domain_verified",
+      "domain": "acme.com",
+      "agent_dns": "acme.agent"
+    }
+  }
+}

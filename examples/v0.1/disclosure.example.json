@@ -1,0 +1,28 @@
+{
+  "disclosure_id": "disc_20260506_def456",
+  "in_response_to": "inv_20260506_abc123",
+  "from_seeker_agent": "kitsuno.agent/u/seeker_xyz",
+  "issued_at": "2026-05-06T16:08:00Z",
+  "principal_decision": "accept",
+  "principal_confirmation": {
+    "confirmed_at": "2026-05-06T16:07:42Z",
+    "confirmation_method": "in_app_explicit"
+  },
+  "newly_disclosed": {
+    "constraints": [
+      "no_on_call",
+      "prefers_async_communication"
+    ],
+    "language_proficiency": [
+      {
+        "language": "en",
+        "level": "native"
+      },
+      {
+        "language": "de",
+        "level": "C1"
+      }
+    ]
+  },
+  "next_step_requested": "vacancy_agent_disclose_company_and_comp"
+}

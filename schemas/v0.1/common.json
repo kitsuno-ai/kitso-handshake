@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.1/common.json",
+  "title": "Kitso Handshake — common types",
+  "description": "Shared enums and reusable type definitions for Kitso Handshake v0.1.",
+  "$defs": {
+    "ConsentTier": {
+      "title": "ConsentTier",
+      "description": "Disclosure policy for a single field or operation. See spec §5 (Consent grammar).",
+      "type": "string",
+      "enum": [
+        "auto_disclosable",
+        "confirmation_required",
+        "human_only",
+        "forbidden"
+      ]
+    },
+    "TrustTier": {
+      "title": "TrustTier",
+      "description": "Verifiability of a claimed agent identity. See spec §6 (Trust tiers).",
+      "type": "string",
+      "enum": [
+        "domain_verified",
+        "agent_resolved",
+        "third_party_attested",
+        "self_asserted",
+        "anonymous"
+      ]
+    },
+    "PrincipalType": {
+      "title": "PrincipalType",
+      "description": "What kind of principal an agent represents.",
+      "type": "string",
+      "enum": [
+        "individual",
+        "employee",
+        "hiring_entity"
+      ]
+    },
+    "EmploymentType": {
+      "title": "EmploymentType",
+      "type": "string",
+      "enum": [
+        "permanent",
+        "contract",
+        "internship",
+        "apprenticeship",
+        "temporary",
+        "internal_mobility"
+      ]
+    },
+    "AgentIdentifier": {
+      "title": "AgentIdentifier",
+      "description": "A stable agent identifier. Recommended pattern: `<namespace>/<role>/<id>` (e.g. `kitsuno.agent/u/seeker_xyz`, `acme.agent/v/eng-42`).",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)+$"
+    },
+    "ISO4217Currency": {
+      "title": "ISO4217Currency",
+      "description": "ISO 4217 three-letter currency code.",
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "ISO31661Alpha2": {
+      "title": "ISO31661Alpha2",
+      "description": "ISO 3166-1 alpha-2 country code.",
+      "type": "string",
+      "pattern": "^[A-Z]{2}$"
+    },
+    "ISO6391Language": {
+      "title": "ISO6391Language",
+      "description": "ISO 639-1 two-letter language code.",
+      "type": "string",
+      "pattern": "^[a-z]{2}$"
+    },
+    "MoneyAmount": {
+      "title": "MoneyAmount",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "currency": {
+          "$ref": "#/$defs/ISO4217Currency"
+        },
+        "period": {
+          "type": "string",
+          "enum": [
+            "year",
+            "month",
+            "day",
+            "hour",
+            "project"
+          ]
+        }
+      },
+      "required": [
+        "amount",
+        "currency",
+        "period"
+      ],
+      "additionalProperties": false
+    },
+    "Geography": {
+      "title": "Geography",
+      "type": "object",
+      "properties": {
+        "country": {
+          "$ref": "#/$defs/ISO31661Alpha2"
+        },
+        "city": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "country"
+      ],
+      "additionalProperties": false
+    },
+    "Authorization": {
+      "title": "Authorization",
+      "description": "Per-action authorization granted by a principal to its agent. See spec §5: authorizations are mandatory-TTL, revocable, scope-bounded, and carry an explicit bindability bit.",
+      "type": "object",
+      "properties": {
+        "granted_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of explicit principal grant."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "TTL is mandatory; protocol forbids standing authorizations without expiry. Defaults: 90 days for general scope, 7 days for invitation-specific."
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Tasks or fields this authorization covers."
+        },
+        "revocable": {
+          "type": "boolean",
+          "const": true,
+          "description": "Always true. Revocation MUST be respected within 60 seconds of receipt."
+        },
+        "bindability": {
+          "type": "string",
+          "enum": [
+            "bindable",
+            "negotiate_and_surface"
+          ],
+          "description": "Whether this authorization permits the agent to commit on behalf of the principal, or only to negotiate-and-surface back to the human."
+        }
+      },
+      "required": [
+        "granted_at",
+        "expires_at",
+        "scope",
+        "revocable",
+        "bindability"
+      ],
+      "additionalProperties": false
+    },
+    "Provenance": {
+      "title": "Provenance",
+      "description": "Identity verification basis for an Agent Card. See spec §6.",
+      "type": "object",
+      "properties": {
+        "tier": {
+          "$ref": "#/$defs/TrustTier"
+        },
+        "domain": {
+          "type": "string",
+          "format": "hostname",
+          "description": "Verified entity domain (when tier is domain_verified)."
+        },
+        "agent_dns": {
+          "type": "string",
+          "description": "`.agent`-namespace identifier (when tier is agent_resolved)."
+        },
+        "original_source": {
+          "type": "string",
+          "format": "uri",
+          "description": "URI of the public source from which a transient Agent was synthesized (when tier is third_party_attested)."
+        },
+        "attested_by": {
+          "$ref": "#/$defs/AgentIdentifier",
+          "description": "Identifier of the attesting agent (when tier is third_party_attested)."
+        }
+      },
+      "required": [
+        "tier"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

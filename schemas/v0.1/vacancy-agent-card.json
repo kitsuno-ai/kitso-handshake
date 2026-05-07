@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.1/vacancy-agent-card.json",
+  "title": "Vacancy Agent Card extension (kitso.handshake.v1)",
+  "description": "The kitso.handshake.v1 extension block for an A2A AgentCard representing a hiring opportunity. See spec §4.2.",
+  "type": "object",
+  "properties": {
+    "kitso.handshake.v1": {
+      "type": "object",
+      "properties": {
+        "principal_type": {
+          "$ref": "common.json#/$defs/PrincipalType",
+          "const": "hiring_entity"
+        },
+        "vacancy": {
+          "type": "object",
+          "properties": {
+            "role_title": {
+              "type": "string",
+              "minLength": 1
+            },
+            "role_family": {
+              "type": "string",
+              "minLength": 1
+            },
+            "seniority": {
+              "type": "string",
+              "minLength": 1
+            },
+            "employment_type": {
+              "$ref": "common.json#/$defs/EmploymentType"
+            },
+            "geography": {
+              "type": "object",
+              "properties": {
+                "country": {
+                  "$ref": "common.json#/$defs/ISO31661Alpha2"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "remote_policy": {
+                  "type": "string",
+                  "description": "Free-form descriptor; recommended values include `fully_remote`, `hybrid_<N>_days`, `onsite`."
+                }
+              },
+              "required": [
+                "country"
+              ],
+              "additionalProperties": false
+            },
+            "compensation": {
+              "type": "object",
+              "properties": {
+                "disclosed_in_invitation": {
+                  "type": "boolean"
+                },
+                "range": {
+                  "type": "object",
+                  "properties": {
+                    "min": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "max": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "currency": {
+                      "$ref": "common.json#/$defs/ISO4217Currency"
+                    },
+                    "period": {
+                      "type": "string",
+                      "enum": [
+                        "year",
+                        "month",
+                        "day",
+                        "hour",
+                        "project"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "min",
+                    "max",
+                    "currency"
+                  ],
+                  "additionalProperties": false
+                },
+                "disclosure_trigger": {
+                  "type": "string",
+                  "description": "Event that triggers compensation disclosure. e.g. `after_seeker_accepts_invitation`."
+                }
+              },
+              "required": [
+                "disclosed_in_invitation"
+              ],
+              "additionalProperties": false
+            },
+            "must_haves": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "nice_to_haves": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "ttl": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When this vacancy expires."
+            }
+          },
+          "required": [
+            "role_title",
+            "role_family",
+            "ttl"
+          ],
+          "additionalProperties": false
+        },
+        "hiring_entity": {
+          "type": "object",
+          "description": "The entity doing the hiring. Disclosure may be deferred via `disclosure_trigger`.",
+          "properties": {
+            "name_disclosed_in_invitation": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "industry": {
+              "type": "string"
+            },
+            "size_band": {
+              "type": "string",
+              "description": "Free-form, e.g. `1-10`, `200-500`."
+            },
+            "disclosure_trigger": {
+              "type": "string"
+            },
+            "represented_via_rpo": {
+              "type": "boolean"
+            },
+            "rpo_name": {
+              "type": "string"
+            },
+            "underlying_entity_disclosed": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "consent_policy": {
+          "type": "object",
+          "properties": {
+            "agent_may_invite_without_human_review": {
+              "type": "boolean"
+            },
+            "human_in_loop_role": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent_may_invite_without_human_review"
+          ],
+          "additionalProperties": false
+        },
+        "provenance": {
+          "$ref": "common.json#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "principal_type",
+        "vacancy",
+        "hiring_entity",
+        "consent_policy",
+        "provenance"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "kitso.handshake.v1"
+  ],
+  "additionalProperties": true
+}

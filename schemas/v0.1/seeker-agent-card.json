@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.1/seeker-agent-card.json",
+  "title": "Seeker Agent Card extension (kitso.handshake.v1)",
+  "description": "The kitso.handshake.v1 extension block for an A2A AgentCard representing a job seeker. See spec §4.1.",
+  "type": "object",
+  "properties": {
+    "kitso.handshake.v1": {
+      "type": "object",
+      "properties": {
+        "principal_type": {
+          "$ref": "common.json#/$defs/PrincipalType",
+          "description": "Must be `individual` or `employee` for seekers."
+        },
+        "stance": {
+          "type": "object",
+          "description": "The seeker's current openness to invitations.",
+          "properties": {
+            "open_to_invitations": {
+              "type": "boolean"
+            },
+            "active_search": {
+              "type": "boolean"
+            },
+            "ttl": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When this stance expires and must be renewed."
+            }
+          },
+          "required": [
+            "open_to_invitations",
+            "ttl"
+          ],
+          "additionalProperties": false
+        },
+        "scope": {
+          "type": "object",
+          "description": "What kind of opportunities the seeker is open to.",
+          "properties": {
+            "role_families": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "seniority": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "employment_types": {
+              "type": "array",
+              "items": {
+                "$ref": "common.json#/$defs/EmploymentType"
+              },
+              "minItems": 1
+            },
+            "geographies": {
+              "type": "object",
+              "properties": {
+                "countries": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.json#/$defs/ISO31661Alpha2"
+                  }
+                },
+                "remote_ok": {
+                  "type": "boolean"
+                }
+              },
+              "additionalProperties": false
+            },
+            "languages_for_invitation": {
+              "type": "array",
+              "items": {
+                "$ref": "common.json#/$defs/ISO6391Language"
+              },
+              "minItems": 1,
+              "description": "Languages in which the seeker accepts invitations."
+            }
+          },
+          "required": [
+            "role_families"
+          ],
+          "additionalProperties": false
+        },
+        "constraints": {
+          "type": "object",
+          "description": "Hard filters; opportunities outside these are not invited.",
+          "properties": {
+            "compensation_floor": {
+              "$ref": "common.json#/$defs/MoneyAmount"
+            },
+            "company_types_excluded": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "employment_constraints": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "consent_policy": {
+          "type": "object",
+          "description": "Per-field disclosure policy. See spec §5 for the four-tier consent grammar.",
+          "properties": {
+            "agent_may_disclose_without_confirmation": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Fields tier `auto_disclosable`."
+            },
+            "agent_must_confirm_before_disclosing": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Fields tier `confirmation_required`."
+            },
+            "human_only_contact_for": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Operations tier `human_only`."
+            }
+          },
+          "additionalProperties": false
+        },
+        "trust_tier_required_minimum": {
+          "$ref": "common.json#/$defs/TrustTier",
+          "description": "Minimum trust tier a Vacancy Agent must satisfy to be allowed to issue invitations. Below-tier agents MUST be silently ignored."
+        }
+      },
+      "required": [
+        "principal_type",
+        "stance",
+        "scope",
+        "consent_policy",
+        "trust_tier_required_minimum"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "kitso.handshake.v1"
+  ],
+  "additionalProperties": true
+}
