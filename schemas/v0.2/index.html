@@ -1,449 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Kitsuno Handshake v0.2 — open protocol for agent-to-agent hiring. L1/L2/L3 disclosure tiers, HMAC-signed messages, federated verification.">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kitsuno Handshake v0.2 — Open protocol for agent-to-agent hiring</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <meta name="description" content="Kitsuno Handshake v0.2 — open protocol for agent-to-agent hiring. L1/L2/L3 disclosure tiers, HMAC-signed messages, federated verification." />
+  <link rel="canonical" href="https://kitsuno.ai/handshake/v0.2/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kitsuno.ai/handshake/v0.2/" />
+  <meta property="og:title" content="Kitsuno Handshake v0.2 — Open protocol for agent-to-agent hiring" />
+  <meta property="og:description" content="An open protocol for agent-to-agent hiring. Above A2A. Apache 2.0. Federation is a first-class primitive." />
+  <meta property="og:image" content="https://kitsuno.ai/static/img/og-image.png" />
+  <meta property="og:site_name" content="Kitsuno" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@kitsuno_ai" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/svg+xml" href="/static/img/kitso-logo.svg" />
+
   <style>
     :root {
-      --orange: #e8622a;
-      --orange-soft: #fff1ec;
-      --ink: #1a1a1a;
-      --ink-soft: #555;
-      --bg: #fafaf8;
-      --bg-card: #fff;
-      --border: #e6e3dd;
-      --code-bg: #1a1a1a;
-      --code-ink: #f0f0f0;
-      --code-comment: #888;
-      --max-width: 1080px;
+      --bg: #FAFAF8;
+      --bg-warm: #F5F4F0;
+      --surface: #FFFFFF;
+      --surface-2: #F0EFEB;
+      --surface-3: #E8E7E2;
+      --border: #E0DED8;
+      --border-accent: #D0CEC6;
+      --text: #1A1A1A;
+      --text-secondary: #4A4A4A;
+      --text-muted: #7A7A72;
+      --text-dim: #A0A098;
+      --fox: #e8622a;
+      --fox-glow: rgba(232,98,42,0.10);
+      --fox-strong: #d4551f;
+      --teal: #0d9488;
+      --green: #16a34a;
+      --blue: #2563eb;
+      --purple: #7c3aed;
+      --rose: #e11d48;
+      --nav-bg: rgba(250,250,248,0.85);
+      --card-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+      --toggle-track: #D0CEC6;
+      --toggle-thumb: #FFFFFF;
+      --font-heading: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
     }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    [data-theme="dark"] {
+      --bg: #0c0e11;
+      --bg-warm: #10131a;
+      --surface: #13161b;
+      --surface-2: #191d24;
+      --surface-3: #1f242d;
+      --border: #272e3a;
+      --border-accent: #354058;
+      --text: #e2e6ed;
+      --text-secondary: #b0b8c8;
+      --text-muted: #7a8599;
+      --text-dim: #4a5468;
+      --fox: #f09040;
+      --fox-glow: rgba(240,144,64,0.12);
+      --fox-strong: #e87830;
+      --nav-bg: rgba(12,14,17,0.88);
+      --card-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.15);
+      --toggle-track: #354058;
+      --toggle-thumb: #e2e6ed;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      margin: 0;
-      font-family: 'DM Sans', system-ui, sans-serif;
-      font-size: 17px;
-      line-height: 1.65;
-      color: var(--ink);
+      font-family: var(--font-body);
       background: var(--bg);
+      color: var(--text);
+      line-height: 1.72;
+      font-size: 15px;
       -webkit-font-smoothing: antialiased;
+      padding-top: 64px;
     }
-    h1, h2, h3, h4 {
-      font-family: 'Fraunces', Georgia, serif;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      line-height: 1.2;
-      margin: 0 0 0.5em;
-    }
+    ::selection { background: rgba(232,98,42,0.25); }
+    a { color: var(--fox); text-decoration: none; transition: opacity 0.15s; }
+    a:hover { opacity: 0.8; }
+    img { max-width: 100%; height: auto; }
+    code { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-2); padding: 0.15em 0.4em; border-radius: 4px; }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 1rem 0; }
+    pre code { background: none; padding: 0; font-size: inherit; }
+
+    /* Nav — 1:1 with kitsuno.ai */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: var(--nav-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); transition: background 0.4s ease; }
+    .nav-inner { max-width: 1140px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; color: var(--text); text-decoration: none; }
+    .nav-logo:hover { opacity: 0.7; }
+    .nav-logo .fox-mark { width: 30px; height: auto; vertical-align: bottom; }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { color: var(--text-muted); font-size: 0.88rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); opacity: 1; }
+    .nav-links a.active { color: var(--fox); }
+    .theme-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .theme-toggle .icon { font-size: 0.9rem; color: var(--text-muted); }
+    .toggle-track { width: 40px; height: 22px; background: var(--toggle-track); border-radius: 11px; position: relative; transition: background 0.3s; }
+    .toggle-thumb { width: 18px; height: 18px; background: var(--toggle-thumb); border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s ease, background 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    [data-theme="dark"] .toggle-thumb { transform: translateX(18px); }
+    [data-theme="dark"] .toggle-track { background: var(--fox); }
+    .nav-cta { background: var(--fox); color: #fff !important; padding: 8px 20px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; transition: transform 0.2s; }
+    .nav-cta:hover { transform: translateY(-1px); opacity: 1; }
+    .nav-hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text); cursor: pointer; }
+
+    /* Footer — 1:1 with kitsuno.ai */
+    footer { border-top: 1px solid var(--border); padding: 2rem 0; margin-top: 3rem; background: var(--bg); }
+    .footer-inner { max-width: 1140px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; font-size: 0.82rem; color: var(--text-muted); }
+    .footer-links { display: flex; gap: 16px; flex-wrap: wrap; }
+    .footer-links a { color: var(--text-muted); }
+    .footer-links a:hover { color: var(--text); }
+    .footer-socials { display: flex; gap: 12px; }
+    .footer-socials a { color: var(--text-muted); font-size: 0.82rem; }
+    .footer-socials a:hover { color: var(--fox); }
+
+    /* Spec page content */
+    .spec-main { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+    h1, h2, h3, h4 { font-family: var(--font-heading); font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; color: var(--text); margin-bottom: 0.5em; }
     h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; }
-    h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin-top: 3rem; }
-    h3 { font-size: 1.3rem; margin-top: 2rem; }
-    h4 { font-size: 1.05rem; margin-top: 1.5rem; }
-    p { margin: 0 0 1.2em; }
-    a { color: var(--orange); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
-    a:hover { border-bottom-color: var(--orange); }
-    code, pre { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; }
-    code { background: var(--orange-soft); padding: 0.1em 0.35em; border-radius: 3px; color: #b04515; }
-    pre {
-      background: var(--code-bg);
-      color: var(--code-ink);
-      padding: 1.2em 1.5em;
-      border-radius: 8px;
-      overflow-x: auto;
-      line-height: 1.55;
-      font-size: 0.85em;
-    }
-    pre code { background: transparent; color: inherit; padding: 0; }
-    .container {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 0 1.5rem;
-    }
-    nav.top {
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      backdrop-filter: blur(8px);
-      background: rgba(250, 250, 248, 0.92);
-    }
-    nav.top .container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 2rem;
-    }
-    nav.top .brand {
-      font-family: 'Fraunces', serif;
-      font-weight: 800;
-      font-size: 1.2rem;
-      color: var(--ink);
-      border: none;
-    }
-    nav.top .brand span { color: var(--orange); }
-    nav.top ul {
-      list-style: none;
-      display: flex;
-      gap: 1.5rem;
-      margin: 0;
-      padding: 0;
-      font-size: 0.92rem;
-    }
-    nav.top a { color: var(--ink-soft); border: none; }
-    nav.top a:hover { color: var(--orange); }
-    .hero {
-      padding: 4rem 0 3rem;
-      text-align: left;
-    }
-    .hero .badges {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-    .badge {
-      display: inline-block;
-      padding: 0.3em 0.7em;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-    }
-    .badge.version { background: var(--orange); color: white; }
-    .badge.draft { background: var(--orange-soft); color: var(--orange); }
-    .badge.license { background: #f0eee8; color: var(--ink-soft); }
-    .hero p.lede {
-      font-size: 1.25rem;
-      color: var(--ink-soft);
-      max-width: 680px;
-      margin-bottom: 2rem;
-    }
-    .hero .cta {
-      display: inline-block;
-      background: var(--ink);
-      color: white;
-      padding: 0.85em 1.4em;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 1rem;
-      border: none;
-      margin-right: 0.5rem;
-    }
-    .hero .cta:hover { background: var(--orange); }
-    .hero .cta.secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
-    .hero .cta.secondary:hover { background: var(--ink); color: white; }
+    h2 { font-size: clamp(1.55rem, 3vw, 2.05rem); margin-top: 3rem; }
+    h3 { font-size: 1.25rem; margin-top: 1.8rem; }
+    p { margin-bottom: 1.1em; color: var(--text); }
+
+    .hero { padding: 4rem 0 2.5rem; }
+    .hero .badges { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .badge { display: inline-block; padding: 0.3em 0.7em; border-radius: 4px; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.02em; }
+    .badge.version { background: var(--fox); color: white; }
+    .badge.draft { background: var(--fox-glow); color: var(--fox-strong); }
+    .badge.license { background: var(--surface-2); color: var(--text-secondary); }
+    .hero p.lede { font-size: 1.18rem; color: var(--text-secondary); max-width: 680px; margin-bottom: 1.8rem; line-height: 1.6; }
+    .cta-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .cta { display: inline-block; padding: 0.75em 1.4em; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: transform 0.2s; }
+    .cta.primary { background: var(--text); color: var(--bg) !important; }
+    .cta.primary:hover { background: var(--fox); transform: translateY(-1px); opacity: 1; }
+    .cta.secondary { background: transparent; color: var(--text) !important; border: 1px solid var(--border-accent); }
+    .cta.secondary:hover { background: var(--surface-2); opacity: 1; }
+
     section { padding: 1rem 0; }
-    .tier-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 2rem 0;
-      font-size: 0.96rem;
-    }
-    .tier-table th, .tier-table td {
-      padding: 1em 1.2em;
-      text-align: left;
-      border: 1px solid var(--border);
-      vertical-align: top;
-    }
-    .tier-table th {
-      background: var(--orange-soft);
-      font-weight: 700;
-      font-family: 'Fraunces', serif;
-      white-space: nowrap;
-    }
-    .tier-table td.tier-label {
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--orange);
-      white-space: nowrap;
-    }
-    .state-flow {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 2rem;
-      margin: 2rem 0;
-      overflow-x: auto;
-    }
-    .state-flow svg {
-      display: block;
-      max-width: 100%;
-      height: auto;
-      margin: 0 auto;
-    }
-    .schema-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
-      margin: 2rem 0;
-    }
-    .schema-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.2rem 1.4rem;
-      transition: border-color 0.15s, transform 0.15s;
-    }
-    .schema-card:hover {
-      border-color: var(--orange);
-      transform: translateY(-2px);
-    }
-    .schema-card h4 {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.95rem;
-      margin: 0 0 0.4em;
-      color: var(--orange);
-    }
-    .schema-card h4 a { color: inherit; border: none; }
-    .schema-card p {
-      font-size: 0.92rem;
-      color: var(--ink-soft);
-      margin: 0;
-    }
-    .callout {
-      background: var(--orange-soft);
-      border-left: 3px solid var(--orange);
-      padding: 1.2em 1.4em;
-      border-radius: 0 8px 8px 0;
-      margin: 1.5rem 0;
-    }
+    .tier-table { width: 100%; border-collapse: collapse; margin: 2rem 0; font-size: 0.93rem; }
+    .tier-table th, .tier-table td { padding: 0.95em 1.1em; text-align: left; border: 1px solid var(--border); vertical-align: top; }
+    .tier-table th { background: var(--surface-2); font-weight: 700; font-family: var(--font-heading); white-space: nowrap; }
+    .tier-table td.tier-label { font-weight: 700; font-family: var(--font-mono); color: var(--fox); white-space: nowrap; }
+    .state-flow { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin: 2rem 0; overflow-x: auto; box-shadow: var(--card-shadow); }
+    .state-flow svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+    .schema-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .schema-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem 1.4rem; transition: border-color 0.15s, transform 0.15s; box-shadow: var(--card-shadow); }
+    .schema-card:hover { border-color: var(--fox); transform: translateY(-2px); }
+    .schema-card h4 { font-family: var(--font-mono); font-size: 0.92rem; margin: 0 0 0.4em; color: var(--fox); font-weight: 500; }
+    .schema-card h4 a { color: inherit; }
+    .schema-card p { font-size: 0.88rem; color: var(--text-secondary); margin: 0; line-height: 1.55; }
+    .callout { background: var(--fox-glow); border-left: 3px solid var(--fox); padding: 1.1em 1.4em; border-radius: 0 8px 8px 0; margin: 1.5rem 0; }
     .callout p:last-child { margin-bottom: 0; }
-    .callout strong { color: var(--orange); }
-    footer {
-      margin-top: 5rem;
-      padding: 2.5rem 0 3rem;
-      border-top: 1px solid var(--border);
-      color: var(--ink-soft);
-      font-size: 0.9rem;
-    }
-    footer .container {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-    }
-    footer ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 1.2rem; }
-    footer a { color: var(--ink-soft); }
-    .anchor { color: var(--ink-soft); opacity: 0.5; margin-left: 0.5em; font-size: 0.8em; text-decoration: none; border: none; }
+    .callout strong { color: var(--fox-strong); }
+    .anchor { color: var(--text-muted); opacity: 0; margin-left: 0.5em; font-size: 0.7em; text-decoration: none; transition: opacity 0.15s; }
     h2:hover .anchor, h3:hover .anchor { opacity: 1; }
-    @media (max-width: 700px) {
-      nav.top ul { gap: 0.9rem; font-size: 0.85rem; }
-      .hero { padding: 2.5rem 0 2rem; }
-      .tier-table { font-size: 0.85rem; }
-      .tier-table th, .tier-table td { padding: 0.7em 0.8em; }
-      footer .container { flex-direction: column; }
+
+    @media (max-width: 768px) {
+      .nav-hamburger { display: block; }
+      .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; flex-direction: column; background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 24px; gap: 16px; }
+      .nav-links.open { display: flex; }
+      .footer-inner { flex-direction: column; gap: 1rem; }
+      .hero { padding: 2.5rem 0 1.5rem; }
+      .tier-table { font-size: 0.82rem; }
+      .tier-table th, .tier-table td { padding: 0.7em 0.7em; }
     }
   </style>
+
+  <script>
+    (function() {
+      var theme = localStorage.getItem('kitsuno-theme');
+      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 <body>
 
-<nav class="top">
-  <div class="container">
-    <a href="/" class="brand">Kitsuno<span>.</span></a>
-    <ul>
-      <li><a href="#protocol">Protocol</a></li>
-      <li><a href="#schemas">Schemas</a></li>
-      <li><a href="#federation">Federation</a></li>
-      <li><a href="#examples">Examples</a></li>
-      <li><a href="https://github.com/kitsuno-ai/kitso-handshake">GitHub →</a></li>
-    </ul>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <img src="/static/img/kitso-logo.svg" alt="Kitso" class="fox-mark" style="width:30px;height:auto;align-self:flex-end;margin-bottom:15px;" />
+      <span>Kitsuno</span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="/content/en/">Articles</a>
+      <a href="#protocol" class="active">Protocol</a>
+      <a href="#schemas">Schemas</a>
+      <a href="https://github.com/kitsuno-ai/kitso-handshake">GitHub</a>
+      <div class="theme-toggle" id="themeToggle">
+        <span class="icon">☀️</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="icon">🌙</span>
+      </div>
+      <a href="https://app.kitsuno.ai" class="nav-cta">Sign in</a>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Menu" aria-expanded="false">☰</button>
   </div>
 </nav>
 
+<main class="spec-main">
+
 <header class="hero">
-  <div class="container">
-    <div class="badges">
-      <span class="badge version">v0.2</span>
-      <span class="badge draft">Draft — feedback welcome</span>
-      <span class="badge license">Apache 2.0</span>
-    </div>
-    <h1>Kitsuno Handshake</h1>
-    <p class="lede">An open protocol for agent-to-agent hiring. A2A handles the transport. Hiring needs a domain protocol above it — for disclosure tiers, consent, verification, and the moment humans cross the bridge.</p>
-    <p>
-      <a class="cta" href="#protocol">Read the spec</a>
-      <a class="cta secondary" href="https://github.com/kitsuno-ai/kitso-handshake">View on GitHub</a>
-    </p>
+  <div class="badges">
+    <span class="badge version">v0.2</span>
+    <span class="badge draft">Draft — feedback welcome</span>
+    <span class="badge license">Apache 2.0</span>
+  </div>
+  <h1>Kitsuno Handshake</h1>
+  <p class="lede">An open protocol for agent-to-agent hiring. A2A handles the transport. Hiring needs a domain protocol above it — for disclosure tiers, consent, verification, and the moment humans cross the bridge.</p>
+  <div class="cta-row">
+    <a class="cta primary" href="#protocol">Read the spec</a>
+    <a class="cta secondary" href="https://github.com/kitsuno-ai/kitso-handshake">View on GitHub</a>
   </div>
 </header>
 
 <section>
-  <div class="container">
-    <h2 id="problem">The problem we're solving<a class="anchor" href="#problem">#</a></h2>
-    <p>Hiring agents now exist on both sides of the table. Job seekers use agents that auto-apply to hundreds of postings. Companies use agents to filter, screen, and rank. The result is an arms race — agents talking past each other, drowning in volume, with no shared contract for who's allowed to say what to whom, when, and with what consent.</p>
-    <p>Google's A2A protocol (April 2025) gave agents a way to discover and communicate with each other. It's the transport layer. But it deliberately doesn't tell agents <em>what they're negotiating about</em>. Each vertical has to define its own semantics.</p>
-    <p>Commerce has ACP, AP2, UCP. Hiring has nothing. Until now.</p>
-    <div class="callout">
-      <p><strong>Kitsuno is one implementation of Handshake v0.2 — we built the first train. The rails are open.</strong></p>
-      <p>The protocol is Apache 2.0. ATSes, job platforms, recruiter agencies, and individual seekers can all participate without registering with Kitsuno. Federation is a first-class primitive.</p>
+  <h2 id="problem">The problem we're solving<a class="anchor" href="#problem">#</a></h2>
+  <p>Hiring agents now exist on both sides of the table. Job seekers use agents that auto-apply to hundreds of postings. Companies use agents to filter, screen, and rank. The result is an arms race — agents talking past each other, drowning in volume, with no shared contract for who's allowed to say what to whom, when, and with what consent.</p>
+  <p>Google's A2A protocol (April 2025) gave agents a way to discover and communicate with each other. It's the transport layer. But it deliberately doesn't tell agents <em>what they're negotiating about</em>. Each vertical has to define its own semantics.</p>
+  <p>Commerce has ACP, AP2, UCP. Hiring has nothing. Until now.</p>
+  <div class="callout">
+    <p><strong>Kitsuno is one implementation of Handshake v0.2 — we built the first train. The rails are open.</strong></p>
+    <p>The protocol is Apache 2.0. ATSes, job platforms, recruiter agencies, and individual seekers can all participate without registering with Kitsuno. Federation is a first-class primitive.</p>
+  </div>
+</section>
+
+<section>
+  <h2 id="protocol">The protocol: three disclosure tiers<a class="anchor" href="#protocol">#</a></h2>
+  <p>Handshake maps the recruiter funnel into three tiers of disclosure between agents. L1 and L2 are agent-to-agent. L3 is the moment humans cross the bridge.</p>
+
+  <table class="tier-table">
+    <thead>
+      <tr>
+        <th>Tier</th>
+        <th>Layer</th>
+        <th>Recruiter-funnel equivalent</th>
+        <th>What's disclosed</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="tier-label">L1</td>
+        <td>Machine → machine, public</td>
+        <td>Public job-ad surface (LinkedIn / Stepstone equivalent)</td>
+        <td>What any candidate would see on a job board: title, role family, seniority, location, employment type, skills, language requirements, salary range (EU pay-transparency directive defaults), description, posting visibility (named or confidential).</td>
+      </tr>
+      <tr>
+        <td class="tier-label">L2</td>
+        <td>Machine → machine, after seeker signals interest</td>
+        <td>Application form + recruiter pre-screen</td>
+        <td>Detailed role description, full skill list, tech stack, benefits, screening questions answered by the seeker agent from the principal's career record (visa status, notice period, salary expectation, "Why this role?" — answered structurally where possible, generated where not).</td>
+      </tr>
+      <tr>
+        <td class="tier-label">L3</td>
+        <td>Human → human, after vacancy poster <em>releases</em></td>
+        <td>Recruiter screening call / first interview handoff</td>
+        <td>Hiring manager identity, exact compensation breakdown, confidential client identity (for retained search), interview process detail, calendar booking link, internal team context, performance metrics. The candidate's identity and full portfolio become visible to the poster at the same moment.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Posters configure per-field which tier reveals which information. Defaults align with standard ad practice and the EU pay-transparency directive; the <code>tier_overrides</code> field lets posters demote or promote specific fields for confidential searches or sensitive comp data.</p>
+
+  <h3 id="state-machine">State machine<a class="anchor" href="#state-machine">#</a></h3>
+  <p>A single handshake between a seeker and a vacancy is one conversation with a deterministic state flow:</p>
+
+  <div class="state-flow">
+    <svg viewBox="0 0 880 240" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+      <g font-family="JetBrains Mono, monospace" font-size="13" style="color: var(--text);" fill="currentColor">
+        <rect x="20" y="100" width="140" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="90" y="125" text-anchor="middle" font-weight="500">l1_fired</text>
+        <text x="90" y="145" text-anchor="middle" font-size="11" fill="var(--text-muted)">seeker → vacancy</text>
+
+        <rect x="200" y="100" width="200" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="300" y="125" text-anchor="middle" font-weight="500">vacancy_signaled_interest</text>
+        <text x="300" y="145" text-anchor="middle" font-size="11" fill="var(--text-muted)">vacancy → seeker</text>
+
+        <rect x="440" y="100" width="160" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="520" y="125" text-anchor="middle" font-weight="500">l2_disclosed</text>
+        <text x="520" y="145" text-anchor="middle" font-size="11" fill="var(--text-muted)">seeker → vacancy</text>
+
+        <rect x="640" y="100" width="180" height="50" rx="6" fill="var(--fox)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="730" y="125" text-anchor="middle" font-weight="500" fill="#fff">l2_delivered</text>
+        <text x="730" y="145" text-anchor="middle" font-size="11" fill="#fff" opacity="0.8">vacancy → seeker</text>
+
+        <line x1="165" y1="125" x2="195" y2="125" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="405" y1="125" x2="435" y2="125" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="605" y1="125" x2="635" y2="125" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+
+        <text x="90" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">policy_match ≥ threshold</text>
+        <text x="300" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">manual or auto</text>
+        <text x="520" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">from PRS, auto</text>
+        <text x="730" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">human release · L3</text>
+
+        <rect x="200" y="195" width="140" height="35" rx="6" fill="var(--surface-2)" stroke="var(--border-accent)" stroke-width="1"/>
+        <text x="270" y="217" text-anchor="middle" font-size="11" fill="var(--text-muted)">declined / expired</text>
+
+        <line x1="300" y1="155" x2="290" y2="190" stroke="var(--border-accent)" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+      </g>
+    </svg>
+  </div>
+
+  <p>Each transition is HMAC-signed (Stripe-style, with timestamp). Every event is idempotent — receivers deduplicate by <code>event_id</code>. The conversation can terminate at any state with <code>declined</code> or expire silently after the L1 TTL (default 14 days).</p>
+</section>
+
+<section>
+  <h2 id="federation">Federation: protocol, not platform<a class="anchor" href="#federation">#</a></h2>
+  <p>Three primitives make Handshake v0.2 a federated standard rather than a platform-locked API:</p>
+
+  <h3>1. Verifier attribution</h3>
+  <p>Every <code>verification</code> block names its issuer in a <code>verifier</code> field. Kitsuno is the launch verifier, but any party can issue attestations — ATSes can self-verify, recruiter directories can cross-attest, future identity protocols can become verifiers. Receiving agents check the verifier's published keys at <code>&lt;verifier&gt;/.well-known/handshake-v0.2.json</code> and decide whether to trust the attestation.</p>
+
+  <h3>2. Self-hosted discovery</h3>
+  <p>Any domain self-hosts Handshake v0.2 endpoints by publishing a JSON document at <code>/.well-known/handshake-v0.2.json</code> describing supported endpoints (cards index, vacancy-signal, L2 delivery, L3 release) and verifier keys. Other implementations look here first. See <a href="well-known.json">well-known.json</a>.</p>
+
+  <h3>3. Public directory</h3>
+  <p>Kitsuno hosts a paginated, opt-in directory of verified vacancy accounts at <a href="directory.json"><code>kitsuno.ai/handshake/v0.2/directory.json</code></a>. Self-hosters who don't want to be in our directory simply omit themselves; seeker implementations fall back to <code>.well-known</code> on the target domain.</p>
+
+  <div class="callout">
+    <p><strong>What this means for ATSes:</strong> integrate once, accept verified candidate intent from any compliant seeker — Kitsuno or otherwise. The unit of value is the qualified candidate, not the seeker's brand.</p>
+  </div>
+</section>
+
+<section>
+  <h2 id="schemas">Schema reference<a class="anchor" href="#schemas">#</a></h2>
+  <p>All schemas are JSON Schema 2020-12. Each declares its <code>$id</code> at the canonical URL below, allowing validators to resolve <code>$ref</code> between them.</p>
+
+  <div class="schema-grid">
+    <div class="schema-card">
+      <h4><a href="common.json">common.json</a></h4>
+      <p>Foundation. Shared types — DisclosureTier, ConversationState, TrustTier, Verification, TierOverrides, HmacSignature, ISO date/country/language/currency types, Money, LanguageProficiency.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="vacancy-card.json">vacancy-card.json</a></h4>
+      <p>L1 public surface of a vacancy. What seeker agents fetch to evaluate via policy_match before firing L1.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="seeker-card.json">seeker-card.json</a></h4>
+      <p>L1 surface of a seeker. What vacancy agents fetch after receiving an L1 fire to score the (vacancy, seeker) pair.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="l1-fire.json">l1-fire.json</a></h4>
+      <p>Seeker → vacancy. The interest signal fired after policy_match passes the vacancy's threshold.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="vacancy-signal.json">vacancy-signal.json</a></h4>
+      <p>Vacancy → seeker. Response to an L1 fire — interested = true triggers L2 disclosure.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="l2-disclosure.json">l2-disclosure.json</a></h4>
+      <p>Seeker → vacancy. Machine-readable disclosure with structured + free-form answers from the principal's career record.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="l3-release.json">l3-release.json</a></h4>
+      <p>Vacancy → seeker. The human handoff — hiring manager identity, compensation breakdown, calendar, internal context.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="directory.json">directory.json</a></h4>
+      <p>Public, paginated, opt-in directory of verified vacancy accounts. Federation primitive.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="well-known.json">well-known.json</a></h4>
+      <p>Self-hosted discovery format. Any domain publishes this at <code>/.well-known/handshake-v0.2.json</code> to participate.</p>
     </div>
   </div>
 </section>
 
 <section>
-  <div class="container">
-    <h2 id="protocol">The protocol: three disclosure tiers<a class="anchor" href="#protocol">#</a></h2>
-    <p>Handshake maps the recruiter funnel into three tiers of disclosure between agents. L1 and L2 are agent-to-agent. L3 is the moment humans cross the bridge.</p>
+  <h2 id="examples">Example handshake<a class="anchor" href="#examples">#</a></h2>
+  <p>A complete handshake from L1 fire to L3 release, three messages between the seeker agent at <code>kitsuno.agent/u/alice</code> and the vacancy agent at <code>acme.example/v/eng-42</code>.</p>
 
-    <table class="tier-table">
-      <thead>
-        <tr>
-          <th>Tier</th>
-          <th>Layer</th>
-          <th>Recruiter-funnel equivalent</th>
-          <th>What's disclosed</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="tier-label">L1</td>
-          <td>Machine → machine, public</td>
-          <td>Public job-ad surface (LinkedIn / Stepstone equivalent)</td>
-          <td>What any candidate would see on a job board: title, role family, seniority, location, employment type, skills, language requirements, salary range (EU pay-transparency directive defaults), description, posting visibility (named or confidential).</td>
-        </tr>
-        <tr>
-          <td class="tier-label">L2</td>
-          <td>Machine → machine, after seeker signals interest</td>
-          <td>Application form + recruiter pre-screen</td>
-          <td>Detailed role description, full skill list, tech stack, benefits, screening questions answered by the seeker agent from the principal's career record (visa status, notice period, salary expectation, "Why this role?" — answered structurally where possible, generated where not).</td>
-        </tr>
-        <tr>
-          <td class="tier-label">L3</td>
-          <td>Human → human, after vacancy poster <em>releases</em></td>
-          <td>Recruiter screening call / first interview handoff</td>
-          <td>Hiring manager identity, exact compensation breakdown, confidential client identity (for retained search), interview process detail, calendar booking link, internal team context, performance metrics. The candidate's identity and full portfolio become visible to the poster at the same moment.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>Posters configure per-field which tier reveals which information. Defaults align with standard ad practice and the EU pay-transparency directive; the <code>tier_overrides</code> field lets posters demote or promote specific fields for confidential searches or sensitive comp data.</p>
-
-    <h3 id="state-machine">State machine<a class="anchor" href="#state-machine">#</a></h3>
-    <p>A single handshake between a seeker and a vacancy is one conversation with a deterministic state flow:</p>
-
-    <div class="state-flow">
-      <svg viewBox="0 0 880 240" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1a1a"/>
-          </marker>
-        </defs>
-        <g font-family="JetBrains Mono, monospace" font-size="13" fill="#1a1a1a">
-          <rect x="20" y="100" width="140" height="50" rx="6" fill="#fff1ec" stroke="#e8622a" stroke-width="1.5"/>
-          <text x="90" y="125" text-anchor="middle" font-weight="500">l1_fired</text>
-          <text x="90" y="145" text-anchor="middle" font-size="11" fill="#888">seeker → vacancy</text>
-
-          <rect x="200" y="100" width="200" height="50" rx="6" fill="#fff1ec" stroke="#e8622a" stroke-width="1.5"/>
-          <text x="300" y="125" text-anchor="middle" font-weight="500">vacancy_signaled_interest</text>
-          <text x="300" y="145" text-anchor="middle" font-size="11" fill="#888">vacancy → seeker</text>
-
-          <rect x="440" y="100" width="160" height="50" rx="6" fill="#fff1ec" stroke="#e8622a" stroke-width="1.5"/>
-          <text x="520" y="125" text-anchor="middle" font-weight="500">l2_disclosed</text>
-          <text x="520" y="145" text-anchor="middle" font-size="11" fill="#888">seeker → vacancy</text>
-
-          <rect x="640" y="100" width="180" height="50" rx="6" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="1.5"/>
-          <text x="730" y="125" text-anchor="middle" font-weight="500" fill="#fff">l2_delivered</text>
-          <text x="730" y="145" text-anchor="middle" font-size="11" fill="#aaa">vacancy → seeker</text>
-
-          <line x1="165" y1="125" x2="195" y2="125" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arr)"/>
-          <line x1="405" y1="125" x2="435" y2="125" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arr)"/>
-          <line x1="605" y1="125" x2="635" y2="125" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arr)"/>
-
-          <text x="90" y="80" text-anchor="middle" font-size="11" fill="#888">policy_match ≥ threshold</text>
-          <text x="300" y="80" text-anchor="middle" font-size="11" fill="#888">manual or auto</text>
-          <text x="520" y="80" text-anchor="middle" font-size="11" fill="#888">from PRS, auto</text>
-          <text x="730" y="80" text-anchor="middle" font-size="11" fill="#888">human release · L3</text>
-
-          <rect x="200" y="195" width="140" height="35" rx="6" fill="#f0eee8" stroke="#ccc" stroke-width="1"/>
-          <text x="270" y="217" text-anchor="middle" font-size="11" fill="#888">declined / expired</text>
-
-          <line x1="300" y1="155" x2="290" y2="190" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr)"/>
-        </g>
-      </svg>
-    </div>
-
-    <p>Each transition is HMAC-signed (Stripe-style, with timestamp). Every event is idempotent — receivers deduplicate by <code>event_id</code>. The conversation can terminate at any state with <code>declined</code> or expire silently after the L1 TTL (default 14 days).</p>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2 id="federation">Federation: protocol, not platform<a class="anchor" href="#federation">#</a></h2>
-    <p>Three primitives make Handshake v0.2 a federated standard rather than a platform-locked API:</p>
-
-    <h3>1. Verifier attribution</h3>
-    <p>Every <code>verification</code> block names its issuer in a <code>verifier</code> field. Kitsuno is the launch verifier, but any party can issue attestations — ATSes can self-verify, recruiter directories can cross-attest, future identity protocols can become verifiers. Receiving agents check the verifier's published keys at <code>&lt;verifier&gt;/.well-known/handshake-v0.2.json</code> and decide whether to trust the attestation.</p>
-
-    <h3>2. Self-hosted discovery</h3>
-    <p>Any domain self-hosts Handshake v0.2 endpoints by publishing a JSON document at <code>/.well-known/handshake-v0.2.json</code> describing supported endpoints (cards index, vacancy-signal, L2 delivery, L3 release) and verifier keys. Other implementations look here first. See <a href="well-known.json">well-known.json</a>.</p>
-
-    <h3>3. Public directory</h3>
-    <p>Kitsuno hosts a paginated, opt-in directory of verified vacancy accounts at <a href="directory.json"><code>kitsuno.ai/handshake/v0.2/directory.json</code></a>. Self-hosters who don't want to be in our directory simply omit themselves; seeker implementations are expected to fall back to <code>.well-known</code> on the target domain. See <a href="directory.json">directory.json</a>.</p>
-
-    <div class="callout">
-      <p><strong>What this means for ATSes:</strong> integrate once, accept verified candidate intent from any compliant seeker — Kitsuno or otherwise. The unit of value is the qualified candidate, not the seeker's brand.</p>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2 id="schemas">Schema reference<a class="anchor" href="#schemas">#</a></h2>
-    <p>All schemas are JSON Schema 2020-12. Each declares its <code>$id</code> at the canonical URL below, allowing validators to resolve <code>$ref</code> between them.</p>
-
-    <div class="schema-grid">
-      <div class="schema-card">
-        <h4><a href="common.json">common.json</a></h4>
-        <p>Foundation. Shared types — DisclosureTier, ConversationState, TrustTier, Verification, TierOverrides, HmacSignature, ISO date/country/language/currency types, Money, LanguageProficiency.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="vacancy-card.json">vacancy-card.json</a></h4>
-        <p>L1 public surface of a vacancy. What seeker agents fetch to evaluate via policy_match before firing L1.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="seeker-card.json">seeker-card.json</a></h4>
-        <p>L1 surface of a seeker. What vacancy agents fetch after receiving an L1 fire to score the (vacancy, seeker) pair.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="l1-fire.json">l1-fire.json</a></h4>
-        <p>Seeker → vacancy. The interest signal fired after policy_match passes the vacancy's threshold.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="vacancy-signal.json">vacancy-signal.json</a></h4>
-        <p>Vacancy → seeker. Response to an L1 fire — interested = true triggers L2 disclosure.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="l2-disclosure.json">l2-disclosure.json</a></h4>
-        <p>Seeker → vacancy. Machine-readable disclosure with structured + free-form answers from the principal's career record.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="l3-release.json">l3-release.json</a></h4>
-        <p>Vacancy → seeker. The human handoff — hiring manager identity, compensation breakdown, calendar, internal context.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="directory.json">directory.json</a></h4>
-        <p>Public, paginated, opt-in directory of verified vacancy accounts. Federation primitive.</p>
-      </div>
-      <div class="schema-card">
-        <h4><a href="well-known.json">well-known.json</a></h4>
-        <p>Self-hosted discovery format. Any domain publishes this at <code>/.well-known/handshake-v0.2.json</code> to participate.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section>
-  <div class="container">
-    <h2 id="examples">Example handshake<a class="anchor" href="#examples">#</a></h2>
-    <p>A complete handshake from L1 fire to L3 release, three messages between the seeker agent at <code>kitsuno.agent/u/alice</code> and the vacancy agent at <code>acme.example/v/eng-42</code>.</p>
-
-    <h3>L1 fire (seeker → vacancy)</h3>
+  <h3>L1 fire (seeker → vacancy)</h3>
 <pre><code>POST /handshake/v0.2/inbox/internal HTTP/1.1
 Host: acme.example
 Handshake-Signature: t=1747300800,v1=8a3b...
@@ -465,7 +403,7 @@ Handshake-Signature: t=1747300800,v1=8a3b...
   "ttl_seconds": 1209600
 }</code></pre>
 
-    <h3>L2 disclosure (seeker → vacancy, after vacancy_signaled_interest)</h3>
+  <h3>L2 disclosure (seeker → vacancy, after vacancy_signaled_interest)</h3>
 <pre><code>POST /api/v0.2/inbox HTTP/1.1
 Host: acme.example
 Handshake-Signature: t=1747300920,v1=c4f9...
@@ -495,7 +433,7 @@ Handshake-Signature: t=1747300920,v1=c4f9...
   ]
 }</code></pre>
 
-    <h3>L3 release (vacancy → seeker, after human review)</h3>
+  <h3>L3 release (vacancy → seeker, after human review)</h3>
 <pre><code>POST /api/v0.2/conversations/0193e8ac.../release HTTP/1.1
 Host: kitsuno.ai
 Handshake-Signature: t=1747304400,v1=e1d8...
@@ -524,38 +462,61 @@ Handshake-Signature: t=1747304400,v1=e1d8...
   "calendar_link": "https://cal.example.com/sarah-chen/intro-30min",
   "next_step_message": "Hi Alice — your experience with event-driven migrations is exactly the wedge we're hiring for..."
 }</code></pre>
-  </div>
 </section>
 
 <section>
-  <div class="container">
-    <h2 id="implementation">Implementation<a class="anchor" href="#implementation">#</a></h2>
-    <p>Kitsuno operates the reference implementation of Handshake v0.2 at <a href="https://kitsuno.ai">kitsuno.ai</a>. It is one operator. The protocol does not require Kitsuno.</p>
+  <h2 id="implementation">Implementation<a class="anchor" href="#implementation">#</a></h2>
+  <p>Kitsuno operates the reference implementation of Handshake v0.2 at <a href="https://kitsuno.ai">kitsuno.ai</a>. It is one operator. The protocol does not require Kitsuno.</p>
 
-    <h3>For ATSes</h3>
-    <p>Integrate Handshake v0.2 in your platform to receive verified candidate intent from any compliant seeker. See <a href="https://kitsuno.ai/for-ats">for-ats</a> for the integration guide and sandbox access. DNS verification + webhook challenge-response, no usage minimums during launch.</p>
+  <h3>For ATSes</h3>
+  <p>Integrate Handshake v0.2 in your platform to receive verified candidate intent from any compliant seeker. See <a href="https://kitsuno.ai/for-ats">for-ats</a> for the integration guide and sandbox access. DNS verification + webhook challenge-response, no usage minimums during launch.</p>
 
-    <h3>For agent builders</h3>
-    <p>Reference Go and Python implementations are at <a href="https://github.com/kitsuno-ai/kitso-handshake-agents">github.com/kitsuno-ai/kitso-handshake-agents</a> under Apache 2.0. The agents repository includes a complete end-to-end test fixture demonstrating the L1 → L2 → L3 flow.</p>
+  <h3>For agent builders</h3>
+  <p>Reference implementations are at <a href="https://github.com/kitsuno-ai/kitso-handshake-agents">github.com/kitsuno-ai/kitso-handshake-agents</a> under Apache 2.0. The agents repository includes a complete end-to-end test fixture demonstrating the L1 → L2 → L3 flow.</p>
 
-    <h3>For job platforms and recruiter agencies</h3>
-    <p>Sign up at <a href="https://kitsuno.ai/for-companies">for-companies</a> or <a href="https://kitsuno.ai/for-recruiters">for-recruiters</a>, or self-host using the <a href="well-known.json">well-known.json</a> pattern at your own domain.</p>
-  </div>
+  <h3>For job platforms and recruiter agencies</h3>
+  <p>Sign up at <a href="https://kitsuno.ai/for-companies">for-companies</a> or <a href="https://kitsuno.ai/for-recruiters">for-recruiters</a>, or self-host using the <a href="well-known.json">well-known.json</a> pattern at your own domain.</p>
 </section>
 
+</main>
+
 <footer>
-  <div class="container">
-    <div>
-      <p style="margin: 0;"><strong style="color: var(--ink);">Kitsuno Handshake v0.2</strong></p>
-      <p style="margin: 0; font-size: 0.85rem;">Open protocol · Apache 2.0 · Drafted by Kitsuno · Reviewer feedback welcome</p>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <strong>🦊 Kitsuno</strong> · SF4L SRL · Bucharest, Romania<br />
+      © 2026 Kitsuno. All rights reserved.
     </div>
-    <ul>
-      <li><a href="https://github.com/kitsuno-ai/kitso-handshake">GitHub</a></li>
-      <li><a href="https://kitsuno.ai">Kitsuno</a></li>
-      <li><a href="mailto:handshake@kitsuno.ai">Email</a></li>
-    </ul>
+    <div class="footer-links">
+      <a href="/#privacy">Privacy</a>
+      <a href="/#terms">Terms</a>
+      <a href="/#imprint">Imprint</a>
+      <a href="/#principles">Principles</a>
+      <a href="mailto:handshake@kitsuno.ai">handshake@kitsuno.ai</a>
+    </div>
+    <div class="footer-socials">
+      <a href="https://twitter.com/kitsuno_ai" target="_blank">𝕏</a>
+      <a href="https://instagram.com/kitso.ai" target="_blank">IG</a>
+      <a href="https://tiktok.com/@kitso.ai" target="_blank">TikTok</a>
+      <a href="https://linkedin.com/company/kitsuno-ai" target="_blank">LinkedIn</a>
+      <a href="https://www.youtube.com/@Kitso_AI" target="_blank">YouTube</a>
+    </div>
   </div>
 </footer>
+
+<script>
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('kitsuno-theme', newTheme);
+  });
+
+  document.getElementById('navHamburger').addEventListener('click', function() {
+    var links = document.getElementById('navLinks');
+    links.classList.toggle('open');
+    this.setAttribute('aria-expanded', links.classList.contains('open'));
+  });
+</script>
 
 </body>
 </html>
