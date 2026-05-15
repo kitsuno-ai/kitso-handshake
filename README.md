@@ -1,21 +1,22 @@
 # Kitso Handshake
 
-**An A2A extension for consent-first hiring and talent representation.**
+**An open protocol for agent-to-agent hiring.**
 
 | | |
 |---|---|
-| **Status** | Draft v0.1 — pre-publication, under review |
+| **Current draft** | v0.2 — published 2026-05-15 |
+| **Prior draft** | v0.1 — May 2026, available for reference |
 | **License** | Apache License 2.0 |
 | **Author** | Gregory Turkawka (Kitsuno) |
 | **Reference transport** | [Agent2Agent (A2A) Protocol](https://a2a-protocol.org) v1.0 |
 
 ## What this is
 
-Kitso Handshake is a small protocol extension that defines how two agents — one
-representing a job seeker, one representing a hiring entity — exchange enough
-structured information to know whether a hiring conversation is worth the human
-parties' time, **without either party violating the consent boundaries of the
-human they represent**.
+Kitso Handshake is a protocol that defines how two agents — one representing a
+job seeker, one representing a hiring entity — exchange enough structured
+information to know whether a hiring conversation is worth the human parties'
+time, **without either party violating the consent boundaries of the human they
+represent**.
 
 It rests on three commitments:
 
@@ -23,43 +24,86 @@ It rests on three commitments:
 2. **Agents represent rather than substitute.**
 3. **Consent is the boundary that protects agency.**
 
-The full spec is at [`spec/v0.1/handshake.md`](spec/v0.1/handshake.md).
+The current draft is at [`spec/v0.2/`](spec/v0.2/) and rendered at
+[kitsuno.ai/handshake/v0.2/](https://kitsuno.ai/handshake/v0.2/). JSON Schemas
+declare their `$id` at the same URL so validators resolve `$ref` between them
+without any local fetching.
+
+## What v0.2 adds
+
+v0.2 evolves v0.1's foundational commitments into a fully specified handshake
+between agents:
+
+- **Three disclosure tiers (L1, L2, L3)** mapping to the recruiter funnel —
+  public ad, screening form, human handoff. Posters configure per-field which
+  tier reveals which information; sensible defaults follow standard ad practice
+  and the EU pay-transparency directive.
+- **A deterministic state machine** for a single conversation:
+  `l1_fired` → `vacancy_signaled_interest` → `l2_disclosed` → `l2_delivered`,
+  with `declined` and `expired` as terminal branches at any step.
+- **HMAC-signed events** (Stripe-style timestamped signatures) on every
+  transition, with idempotency via `event_id`.
+- **Federation as a first-class primitive:**
+  - Verifier attribution in every `verification` block — anyone can issue
+    attestations, not just Kitsuno.
+  - Self-hosted discovery at `/.well-known/handshake-v0.2.json` so any domain
+    participates without registering with anyone.
+  - A public, opt-in directory at
+    [`kitsuno.ai/handshake/v0.2/directory.json`](https://kitsuno.ai/handshake/v0.2/directory.json)
+    for seekers crawling for counter-agents.
+- **Two new card surfaces:** a `card_authority` distinction between `mirror`
+  cards (scraped from third-party sources) and `primary` cards (published by
+  verified vacancy accounts), and a `tier_overrides` JSON object that lets
+  posters move fields between L1/L2/L3 per card.
+
+v0.1's principles carry forward unchanged. The v0.1 spec remains in
+[`spec/v0.1/`](spec/v0.1/) and its schemas at
+[kitsuno.ai/handshake/v0.1/](https://kitsuno.ai/handshake/v0.1/) for any
+reviewer or implementation still referencing it.
 
 ## Why an extension to A2A
 
 A2A solves transport, identity, capability advertisement, and task lifecycle
 for agent-to-agent communication. We don't redefine any of that. Kitso
-Handshake adds the hiring-domain shapes — Seeker Agent Card, Vacancy Agent
-Card, Invitation, Disclosure — and the consent grammar that makes the exchange
-safe to use on real people's careers.
+Handshake adds the hiring-domain shapes — vacancy cards, seeker cards, the
+L1/L2/L3 state machine — and the consent grammar that makes the exchange safe
+to use on real people's careers.
 
 ## Repository layout
 
 ```
-spec/v0.1/handshake.md          The protocol specification
-schemas/v0.1/*.json             JSON Schema 2020-12 definitions
-examples/v0.1/*.json            Example payloads referenced by the spec
-CONTRIBUTING.md                 How to give feedback during the review phase
+spec/v0.2/                      Current protocol specification
+spec/v0.1/                      Prior draft (reference only)
+schemas/v0.2/*.json             v0.2 JSON Schemas (2020-12)
+schemas/v0.2/index.html         Canonical spec page (served at kitsuno.ai/handshake/v0.2/)
+schemas/v0.1/*.json             v0.1 JSON Schemas
+examples/v0.1/*.json            v0.1 example payloads
+CONTRIBUTING.md                 How to give feedback
 CHANGELOG.md                    Versioning log
 LICENSE                         Apache License 2.0
 ```
 
+## Reference implementation
+
+A reference implementation of v0.2 (Python) is at
+[`kitsuno-ai/kitso-handshake-agents`](https://github.com/kitsuno-ai/kitso-handshake-agents),
+Apache 2.0. Kitsuno operates the production implementation at
+[kitsuno.ai](https://kitsuno.ai). Neither the protocol nor the implementations
+require running Kitsuno's infrastructure.
+
 ## Status and roadmap
 
-- **v0.1 (now)** — draft for invited reviewer feedback. Breaking changes expected.
-- **v0.2 (planned)** — incorporate reviewer feedback; optional W3C Verifiable
-  Credentials trust-tier extension; reference Python implementation.
+- **v0.1 (May 2026)** — initial draft, invited reviewer feedback, available for
+  reference.
+- **v0.2 (current draft)** — disclosure tiers, state machine, federation
+  primitives. Breaking changes from v0.1 are expected as feedback comes in.
 - **v1.0** — first stable release; conformance test suite; governance moved
   toward a community-stewarded model.
 
 ## Feedback
 
-This repository is in a **silent reviewer phase**. If you've been invited to
-review, please open an issue or reach the author at hello@kitsuno.ai. See
+Reach the author at **handshake@kitsuno.ai**, or open an issue. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for what's most useful at this stage.
-
-If you've found this repo independently and want to comment, you are also
-welcome — please open an issue and we'll engage as bandwidth permits.
 
 ## Acknowledgments
 
