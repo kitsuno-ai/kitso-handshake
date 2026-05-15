@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/vacancy-signal.json",
+  "title": "Kitsuno Handshake v0.2 — Vacancy Signal (vacancy → seeker)",
+  "description": "After receiving an L1 fire and reviewing the seeker card, the vacancy agent POSTs this back to the seeker's callback_url to signal interest and trigger L2 disclosure. HMAC-signed. Conversation state transitions l1_fired → vacancy_signaled_interest on receipt; the seeker then auto-builds and POSTs the L2 disclosure synchronously.",
+  "type": "object",
+  "required": [
+    "event_type",
+    "event_id",
+    "signaled_at",
+    "conversation_id",
+    "interested",
+    "verification"
+  ],
+  "properties": {
+    "event_type": { "type": "string", "const": "handshake.vacancy_signaled_interest" },
+    "event_id": { "type": "string", "format": "uuid" },
+    "signaled_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "conversation_id": { "type": "string", "format": "uuid" },
+    "interested": {
+      "type": "boolean",
+      "description": "true → seeker proceeds to L2 disclosure. false → conversation terminates (state=declined)."
+    },
+    "decline_reason": {
+      "type": "string",
+      "description": "Optional, machine-readable category for analytics. Receivers MUST NOT surface user-facing text from this field without sanitization.",
+      "examples": ["skill_mismatch", "geo_mismatch", "salary_mismatch", "role_filled", "other"]
+    },
+    "l2_callback_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Where the seeker should POST the L2 payload. Typically the same as the L1 delivery target but explicit per-conversation override is allowed."
+    },
+    "verification": {
+      "$ref": "common.json#/$defs/Verification",
+      "description": "Attestation of the vacancy account that signaled. Lets the seeker confirm trust tier before responding with L2."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "interested": { "const": true } } },
+      "then": { "required": ["l2_callback_url"] }
+    }
+  ]
+}

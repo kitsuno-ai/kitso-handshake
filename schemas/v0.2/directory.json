@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/directory.json",
+  "title": "Kitsuno Handshake v0.2 — Public Directory",
+  "description": "Federation primitive — paginated, opt-in directory of verified vacancy accounts. Other seeker implementations crawl this to find counter-agents. Self-hosters publish their own equivalent at <their-domain>/.well-known/handshake-v0.2.json. Default opt-in: yes for ATSes, no for confidential recruiters.",
+  "type": "object",
+  "required": ["protocol_version", "generated_at", "page", "items"],
+  "properties": {
+    "protocol_version": { "type": "string", "const": "v0.2" },
+    "generated_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "page": { "type": "integer", "minimum": 1 },
+    "page_size": { "type": "integer", "minimum": 1, "maximum": 1000 },
+    "total_items": { "type": "integer", "minimum": 0 },
+    "next_page_url": { "type": "string", "format": "uri" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["account_id", "display_name", "trust_tier", "card_index_url", "verification"],
+        "properties": {
+          "account_id": { "type": "string", "format": "uuid" },
+          "display_name": { "type": "string" },
+          "domain": { "type": "string", "format": "hostname" },
+          "persona": { "type": "string", "enum": ["small_company", "recruiter", "ats"] },
+          "trust_tier": { "$ref": "common.json#/$defs/TrustTier" },
+          "card_index_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where to fetch the list of active vacancy cards for this account."
+          },
+          "verification": { "$ref": "common.json#/$defs/Verification" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

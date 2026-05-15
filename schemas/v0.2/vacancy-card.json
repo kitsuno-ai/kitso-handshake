@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/vacancy-card.json",
+  "title": "Kitsuno Handshake v0.2 — Vacancy Card (L1 public surface)",
+  "description": "L1 representation of a vacancy. This is what a seeker agent fetches from a canonical URL (e.g., kitsuno.ai/handshake/v0.2/cards/{slug}.json) to evaluate via policy_match. L1 mirrors standard job-ad information — what any candidate would see on a public posting. Fields default to L1 per protocol defaults; the tier_overrides field allows posters to demote individual fields to L2 or L3.",
+  "type": "object",
+  "required": [
+    "card_id",
+    "slug",
+    "card_authority",
+    "title",
+    "role_family",
+    "seniority_level",
+    "employment_type",
+    "remote_type",
+    "country_codes",
+    "skills",
+    "languages_required",
+    "description",
+    "posting_visibility",
+    "verification",
+    "published_at",
+    "expires_at"
+  ],
+  "properties": {
+    "card_id": { "type": "string", "format": "uuid", "description": "Stable card UUID." },
+    "slug": { "type": "string", "minLength": 1, "description": "URL-safe identifier; canonical URL is <verifier>/handshake/v0.2/cards/{slug}.json" },
+    "card_authority": {
+      "type": "string",
+      "enum": ["primary", "mirror"],
+      "description": "primary = published by an authenticated vacancy_account (P1/P2/P3). mirror = scraped from a third-party source by Kitsuno's mirror generator (read-only, L1 only, no L2/L3 reachable)."
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "role_family": { "type": "string", "description": "Coarse role classification (engineering, design, product, marketing, ops, sales, support, hr, finance, legal, executive)." },
+    "seniority_level": { "$ref": "common.json#/$defs/SeniorityLevel" },
+    "employment_type": { "$ref": "common.json#/$defs/EmploymentType" },
+    "remote_type": { "$ref": "common.json#/$defs/RemoteType" },
+    "city": { "type": "string" },
+    "country_codes": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/IsoCountryCode" },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "One or more ISO 3166-1 alpha-2 codes."
+    },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true,
+      "description": "Must-have skills."
+    },
+    "nice_to_have_skills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "languages_required": {
+      "type": "array",
+      "items": { "oneOf": [
+        { "$ref": "common.json#/$defs/IsoLanguageCode" },
+        { "$ref": "common.json#/$defs/LanguageProficiency" }
+      ] }
+    },
+    "years_experience_min": { "type": "integer", "minimum": 0, "maximum": 50 },
+    "visa_sponsorship_offered": { "type": "boolean" },
+    "salary_min": { "type": "number", "minimum": 0 },
+    "salary_max": { "type": "number", "minimum": 0 },
+    "salary_currency": { "$ref": "common.json#/$defs/IsoCurrencyCode" },
+    "salary_period": { "type": "string", "enum": ["hour", "day", "month", "year"] },
+    "description": { "type": "string", "description": "Short L1 description / lede (≤2000 chars recommended)." },
+    "description_full": { "type": "string", "description": "Extended description; default L2 unless poster moves to L1." },
+    "industry_label": { "type": "string", "description": "Surfaced even when posting_visibility=confidential to give seeker signal." },
+    "posting_visibility": { "$ref": "common.json#/$defs/PostingVisibility" },
+    "company_name": {
+      "type": "string",
+      "description": "Required when posting_visibility=named. Withheld at L1 when posting_visibility=confidential (carried in L3 release instead)."
+    },
+    "posted_by": {
+      "type": "string",
+      "description": "Display name of the poster (company or recruiter agency name). When posting_visibility=confidential and posting via recruiter, this is the recruiter agency: 'via [Agency Name] — confidential [industry]'."
+    },
+    "posting_on_behalf_of": {
+      "type": "string",
+      "description": "P2 only — the client name when recruiter posts for a named client. NULL when confidential."
+    },
+    "handshake_policy": {
+      "type": "object",
+      "description": "L1 policy criteria the seeker agent evaluates via policy_match before firing L1. Logical AND across all listed criteria.",
+      "properties": {
+        "required_skills": { "type": "array", "items": { "type": "string" } },
+        "required_languages": { "type": "array", "items": { "$ref": "common.json#/$defs/IsoLanguageCode" } },
+        "min_years_experience": { "type": "integer", "minimum": 0 },
+        "work_permit_required_countries": { "type": "array", "items": { "$ref": "common.json#/$defs/IsoCountryCode" } },
+        "preferred_remote_compatibility": { "type": "array", "items": { "$ref": "common.json#/$defs/RemoteType" } }
+      },
+      "additionalProperties": true
+    },
+    "l2_structured_questions": {
+      "type": "array",
+      "description": "Poster-authored structured screening questions answered by seeker agent at L2 from PRS. Format: array of {id, question_text, answer_type, required}.",
+      "items": {
+        "type": "object",
+        "required": ["id", "question_text", "answer_type"],
+        "properties": {
+          "id": { "type": "string" },
+          "question_text": { "type": "string" },
+          "answer_type": { "type": "string", "enum": ["yes_no", "integer", "text", "enum", "money", "date"] },
+          "enum_values": { "type": "array", "items": { "type": "string" } },
+          "required": { "type": "boolean", "default": true }
+        },
+        "additionalProperties": false
+      }
+    },
+    "l2_free_form_questions": {
+      "type": "array",
+      "description": "Poster-authored free-form questions answered by seeker agent at L2 from PRS via LLM (e.g., 'Why this role?').",
+      "items": { "type": "string" }
+    },
+    "l2_delivery_channel": {
+      "type": "string",
+      "enum": ["email", "webhook", "kitsuno_inbox"],
+      "description": "How L2 payloads are delivered to the vacancy poster."
+    },
+    "l2_delivery_target": {
+      "type": "string",
+      "description": "Email address or webhook URL depending on l2_delivery_channel. Withheld from public card surface."
+    },
+    "tier_overrides": { "$ref": "common.json#/$defs/TierOverrides" },
+    "verification": {
+      "$ref": "common.json#/$defs/Verification",
+      "description": "How the vacancy account behind this card was verified."
+    },
+    "published_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "expires_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "canonical_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "For mirror cards, the original third-party URL. For primary cards, the canonical card URL."
+    },
+    "source_provider": {
+      "type": "string",
+      "description": "For mirror cards, the source provider name (e.g., 'linkedin', 'indeed'). Not present on primary cards."
+    },
+    "supersedes_card_id": { "type": "string", "format": "uuid" },
+    "superseded_by_card_id": { "type": "string", "format": "uuid" }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "posting_visibility": { "const": "named" } } },
+      "then": { "required": ["company_name"] }
+    },
+    {
+      "if": { "properties": { "card_authority": { "const": "mirror" } } },
+      "then": { "required": ["canonical_url", "source_provider"] }
+    }
+  ]
+}

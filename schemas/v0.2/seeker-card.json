@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/seeker-card.json",
+  "title": "Kitsuno Handshake v0.2 — Seeker Card (L1 public surface)",
+  "description": "L1 representation of a seeker — what they're looking for, capabilities they bring, geographic + work-mode preferences. Vacancy agents fetch this when scoring a (vacancy, seeker) pair. L2 disclosure is per-handshake (NOT in this card) and is sent only when a specific vacancy signals interest; carries answers to that vacancy's l2_structured_questions + l2_free_form_questions from PRS.",
+  "type": "object",
+  "required": [
+    "card_id",
+    "slug",
+    "agent_id",
+    "verification",
+    "role_targets",
+    "geography",
+    "work_mode",
+    "languages",
+    "published_at",
+    "expires_at"
+  ],
+  "properties": {
+    "card_id": { "type": "string", "format": "uuid" },
+    "slug": { "type": "string", "minLength": 1 },
+    "agent_id": { "$ref": "common.json#/$defs/AgentIdentifier" },
+    "role_targets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["role_family"],
+        "properties": {
+          "role_family": { "type": "string" },
+          "role_title_keywords": { "type": "array", "items": { "type": "string" } },
+          "seniority_range": {
+            "type": "array",
+            "items": { "$ref": "common.json#/$defs/SeniorityLevel" },
+            "uniqueItems": true
+          },
+          "years_experience": { "type": "integer", "minimum": 0, "maximum": 50 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true,
+      "description": "Skills the seeker brings — what a vacancy agent matches against required_skills."
+    },
+    "languages": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/LanguageProficiency" },
+      "minItems": 1
+    },
+    "geography": {
+      "type": "object",
+      "required": ["countries"],
+      "properties": {
+        "countries": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/IsoCountryCode" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "cities": { "type": "array", "items": { "type": "string" } },
+        "willing_to_relocate": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "work_mode": {
+      "type": "object",
+      "required": ["accepts"],
+      "properties": {
+        "accepts": {
+          "type": "array",
+          "items": { "$ref": "common.json#/$defs/RemoteType" },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "max_onsite_days_per_week": { "type": "integer", "minimum": 0, "maximum": 5 }
+      },
+      "additionalProperties": false
+    },
+    "employment_types": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/EmploymentType" },
+      "uniqueItems": true
+    },
+    "work_permit": {
+      "type": "object",
+      "description": "Countries where the seeker has work permit / right-to-work, sparing the L2 disclosure round-trip for a hard-stop policy_match.",
+      "properties": {
+        "countries_authorized": { "type": "array", "items": { "$ref": "common.json#/$defs/IsoCountryCode" }, "uniqueItems": true },
+        "sponsorship_required": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "salary_expectation": {
+      "type": "object",
+      "description": "Optional at L1; vacancy may also ask for confirmation at L2 via structured questions.",
+      "properties": {
+        "min": { "$ref": "common.json#/$defs/Money" },
+        "max": { "$ref": "common.json#/$defs/Money" },
+        "negotiable": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "availability": {
+      "type": "object",
+      "properties": {
+        "earliest_start_date": { "type": "string", "format": "date" },
+        "notice_period_days": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "$ref": "common.json#/$defs/Verification",
+      "description": "How the seeker (the principal) was verified — typically Kitsuno-issued JWT-derived attestation."
+    },
+    "consent_policy": {
+      "type": "object",
+      "description": "Standing authorizations the seeker has granted to its agent. Required for any L1 fire. Revocation MUST be respected within 60 seconds.",
+      "required": ["agent_may_signal_interest_without_human_review", "scope_expires_at"],
+      "properties": {
+        "agent_may_signal_interest_without_human_review": { "type": "boolean" },
+        "agent_may_disclose_l2_without_human_review": { "type": "boolean" },
+        "agent_may_release_l3_without_human_review": { "type": "boolean", "default": false, "description": "L3 release is human-in-loop by default. Pro feature to auto-approve." },
+        "scope_expires_at": { "$ref": "common.json#/$defs/IsoDateTime" }
+      },
+      "additionalProperties": false
+    },
+    "published_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "expires_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "canonical_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical card URL where this seeker card is hosted."
+    }
+  },
+  "additionalProperties": false
+}

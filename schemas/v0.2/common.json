@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/common.json",
+  "title": "Kitsuno Handshake v0.2 — common types",
+  "description": "Shared enums and reusable types referenced by other v0.2 schemas. Not a standalone payload. Extends v0.1 with explicit L1/L2/L3 disclosure tiers, verification attribution, and federation primitives.",
+  "type": "object",
+  "$defs": {
+    "DisclosureTier": {
+      "title": "Disclosure tier (L1/L2/L3)",
+      "description": "L1 = agent-to-agent public surface (mirrors a standard job ad). L2 = agent-to-agent after seeker signals interest (mirrors application-form screening). L3 = human-to-human after vacancy poster releases (carries identity, compensation specifics, calendar). Posters configure per-field which tier reveals which information; defaults are sensible for the 90% case.",
+      "type": "string",
+      "enum": ["L1", "L2", "L3"]
+    },
+    "ConversationState": {
+      "title": "Handshake conversation state",
+      "description": "State machine for a single seeker↔vacancy handshake. Transitions are one-directional; declined / expired are terminal.",
+      "type": "string",
+      "enum": [
+        "l1_fired",
+        "vacancy_signaled_interest",
+        "l2_disclosed",
+        "l2_delivered",
+        "declined",
+        "expired"
+      ]
+    },
+    "TrustTier": {
+      "title": "Trust tier of an attested party",
+      "description": "Inherited from v0.1 §6 with one addition (challenge_response_verified) for ATSes that pass webhook challenge in addition to DNS.",
+      "type": "string",
+      "enum": [
+        "domain_verified",
+        "challenge_response_verified",
+        "agent_resolved",
+        "third_party_attested",
+        "self_asserted",
+        "anonymous"
+      ]
+    },
+    "VerificationMethod": {
+      "title": "Verification method used to attest a vacancy account",
+      "type": "string",
+      "enum": ["email", "email+dns", "email+dns+linkedin", "email+dns+challenge"]
+    },
+    "Verification": {
+      "title": "Verification block — federation primitive",
+      "description": "Attests how a vacancy account or seeker agent was verified. The verifier field allows ANY party to issue attestations — Kitsuno is the launch verifier but the protocol does not require Kitsuno as gatekeeper. ATSes can self-verify; future protocol parties can become verifiers.",
+      "type": "object",
+      "required": ["method", "tier", "verified_at", "verifier"],
+      "properties": {
+        "method": { "$ref": "#/$defs/VerificationMethod" },
+        "tier": { "$ref": "#/$defs/TrustTier" },
+        "verified_at": { "$ref": "#/$defs/IsoDateTime" },
+        "verifier": {
+          "type": "string",
+          "format": "hostname",
+          "description": "Domain of the party that performed verification (e.g., 'kitsuno.ai', 'somerecruiter.com'). Allows federated attestations.",
+          "examples": ["kitsuno.ai"]
+        },
+        "verifier_signature": {
+          "type": "string",
+          "description": "Optional cryptographic signature from the verifier over (method, tier, verified_at, subject_id). Detached signature; verification keys published at <verifier>/.well-known/handshake-v0.2/verifier-keys.json"
+        },
+        "expires_at": {
+          "$ref": "#/$defs/IsoDateTime",
+          "description": "Optional — attestations MAY expire and require re-verification."
+        }
+      },
+      "additionalProperties": false
+    },
+    "EmploymentType": {
+      "title": "Employment type",
+      "type": "string",
+      "enum": ["full_time", "part_time", "contract", "internship", "apprenticeship", "freelance", "not_specified"]
+    },
+    "RemoteType": {
+      "title": "Remote work arrangement",
+      "type": "string",
+      "enum": ["remote", "hybrid", "onsite", "not_specified"]
+    },
+    "SeniorityLevel": {
+      "title": "Seniority level",
+      "type": "string",
+      "enum": ["intern", "junior", "mid", "senior", "lead", "principal", "director", "vp", "c_level"]
+    },
+    "PostingVisibility": {
+      "title": "Posting visibility — whether company identity is named at L1",
+      "description": "named = company identity surfaces at L1. confidential = identity withheld until L3, with industry + size_band optional at L1 for signal.",
+      "type": "string",
+      "enum": ["named", "confidential"]
+    },
+    "IsoDateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "IsoCountryCode": {
+      "type": "string",
+      "pattern": "^[A-Z]{2}$",
+      "description": "ISO 3166-1 alpha-2"
+    },
+    "IsoLanguageCode": {
+      "type": "string",
+      "pattern": "^[a-z]{2}$",
+      "description": "ISO 639-1"
+    },
+    "IsoCurrencyCode": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217"
+    },
+    "Money": {
+      "type": "object",
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": { "type": "number", "minimum": 0 },
+        "currency": { "$ref": "#/$defs/IsoCurrencyCode" },
+        "period": { "type": "string", "enum": ["hour", "day", "month", "year", "one_time"] }
+      },
+      "additionalProperties": false
+    },
+    "LanguageProficiency": {
+      "type": "object",
+      "required": ["language", "level"],
+      "properties": {
+        "language": { "$ref": "#/$defs/IsoLanguageCode" },
+        "level": { "type": "string", "enum": ["A1", "A2", "B1", "B2", "C1", "C2", "native"] }
+      },
+      "additionalProperties": false
+    },
+    "AgentIdentifier": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable agent identifier in the pattern scheme:identifier (e.g., 'kitsuno.agent/u/<id>', 'externalats.agent/v/<id>').",
+      "examples": ["kitsuno.agent/u/seeker_xyz", "acme.agent/v/eng-42"]
+    },
+    "TierOverrides": {
+      "title": "Per-field tier overrides — poster-controlled disclosure assignment",
+      "description": "Sparse map of field-name → DisclosureTier. Absent fields use protocol defaults (see /handshake/v0.2/defaults). Posters use this to move e.g. salary from default L1 to L2 (with EU pay-transparency banner nudge), or client_identity from default L3 to L1 for non-confidential roles. Keys are the field names from VacancyCard.",
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/DisclosureTier" },
+      "examples": [
+        { "salary_min": "L2", "salary_max": "L2", "compensation_breakdown": "L3" },
+        { "client_identity_reveal": "L1", "hiring_manager_name": "L2" }
+      ]
+    },
+    "HmacSignature": {
+      "title": "Stripe-style HMAC-SHA256 signature",
+      "type": "string",
+      "pattern": "^t=[0-9]+,v1=[a-f0-9]{64}$",
+      "description": "Format: 't=<unix_ts>,v1=<hex_hmac_sha256>'. Signed body is '<unix_ts>.<request_body_bytes>'. Receivers reject signatures older than 5 minutes."
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/l1-fire.json",
+  "title": "Kitsuno Handshake v0.2 — L1 Fire (seeker → vacancy)",
+  "description": "L1 message — the seeker agent signals interest in a vacancy after policy_match passes. POSTed to the vacancy's l2_delivery_target (when applicable for primary cards) OR queued for outside-Kitsuno digest (mirror cards). HMAC-signed with Stripe-style signature header.",
+  "type": "object",
+  "required": [
+    "event_type",
+    "event_id",
+    "fired_at",
+    "conversation_id",
+    "seeker_card_url",
+    "seeker_card_id",
+    "vacancy_card_id",
+    "score",
+    "policy_match_result"
+  ],
+  "properties": {
+    "event_type": { "type": "string", "const": "handshake.l1_fired" },
+    "event_id": { "type": "string", "format": "uuid", "description": "Idempotency key — receivers MUST deduplicate by this." },
+    "fired_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "conversation_id": { "type": "string", "format": "uuid", "description": "Stable identifier for this seeker↔vacancy handshake. Used in all subsequent state transitions." },
+    "seeker_card_url": { "type": "string", "format": "uri", "description": "Where the vacancy agent should GET the seeker card." },
+    "seeker_card_id": { "type": "string", "format": "uuid" },
+    "vacancy_card_id": { "type": "string", "format": "uuid" },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Deterministic policy_match score (role/location/skills/seniority/languages weighted). ≥ vacancy's strong_fit_threshold to fire L1."
+    },
+    "policy_match_result": {
+      "type": "object",
+      "description": "Audit trail of which criteria from handshake_policy matched. Receivers may store for analytics; not required for decision logic.",
+      "properties": {
+        "matched_criteria": { "type": "array", "items": { "type": "string" } },
+        "unmatched_criteria": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "seeker_agent_id": { "$ref": "common.json#/$defs/AgentIdentifier" },
+    "seeker_verification": {
+      "$ref": "common.json#/$defs/Verification",
+      "description": "Attestation the receiver can use to short-circuit verification of the seeker."
+    },
+    "callback_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Where the vacancy agent POSTs the vacancy-signal response (to express interest back at the seeker)."
+    },
+    "ttl_seconds": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 1209600,
+      "description": "Seconds before this L1 expires if no vacancy-signal received. Default 14 days."
+    }
+  },
+  "additionalProperties": false
+}

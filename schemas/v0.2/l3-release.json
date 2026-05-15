@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/l3-release.json",
+  "title": "Kitsuno Handshake v0.2 — L3 Release (vacancy → seeker)",
+  "description": "The human hand-off message. After reviewing the L2 disclosure, the vacancy poster (human, in their dashboard) clicks 'Engage' / 'Release L3'. This message carries the additional information load — hiring manager identity, exact compensation, confidential client identity (if applicable), interview scheduling, internal context. Triggers the seeker's Writer to draft an outbound application on behalf of the principal. Decrements the vacancy's credit balance by 1 (subject to the 14-day auto-refund cron).",
+  "type": "object",
+  "required": [
+    "event_type",
+    "event_id",
+    "released_at",
+    "conversation_id",
+    "released_by",
+    "disclosure_tier"
+  ],
+  "properties": {
+    "event_type": { "type": "string", "const": "handshake.l3_released" },
+    "event_id": { "type": "string", "format": "uuid" },
+    "released_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "conversation_id": { "type": "string", "format": "uuid" },
+    "disclosure_tier": { "type": "string", "const": "L3" },
+    "released_by": {
+      "type": "object",
+      "required": ["account_id", "actor_type"],
+      "description": "Human or human-supervised release. Auto-release by agent requires the seeker's consent_policy.agent_may_release_l3_without_human_review=true on the receiving side; this field still records who clicked.",
+      "properties": {
+        "account_id": { "type": "string", "format": "uuid" },
+        "actor_type": { "type": "string", "enum": ["human", "agent_with_pre_authorization"] },
+        "display_name": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "hiring_manager": {
+      "type": "object",
+      "description": "L3 reveal of the hiring manager. Always L3 (not configurable).",
+      "properties": {
+        "name": { "type": "string" },
+        "title": { "type": "string" },
+        "linkedin_url": { "type": "string", "format": "uri" },
+        "email": { "type": "string", "format": "email" }
+      },
+      "additionalProperties": false
+    },
+    "client_identity": {
+      "type": "object",
+      "description": "For posting_visibility=confidential, the client identity is revealed here at L3 — this is the moment retained-search firms disclose to the candidate. For posting_visibility=named, this is redundant with vacancy-card.company_name but included for completeness.",
+      "properties": {
+        "company_name": { "type": "string" },
+        "industry": { "type": "string" },
+        "website": { "type": "string", "format": "uri" }
+      },
+      "additionalProperties": false
+    },
+    "compensation_breakdown": {
+      "type": "object",
+      "description": "Detailed compensation. May exceed what was shown at L1 (which is the headline range).",
+      "properties": {
+        "base": { "$ref": "common.json#/$defs/Money" },
+        "bonus_target": { "$ref": "common.json#/$defs/Money" },
+        "equity_description": { "type": "string" },
+        "benefits_summary": { "type": "string" },
+        "relocation_support": { "type": "string" },
+        "currency_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "interview_process": {
+      "type": "object",
+      "properties": {
+        "rounds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["round_name"],
+            "properties": {
+              "round_name": { "type": "string" },
+              "format": { "type": "string", "enum": ["phone", "video", "onsite", "take_home", "panel"] },
+              "duration_minutes": { "type": "integer" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "expected_total_duration_days": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "calendar_link": {
+      "type": "string",
+      "format": "uri",
+      "description": "Direct booking link for the first round (Calendly / similar)."
+    },
+    "office_address": { "type": "string" },
+    "internal_team_context": {
+      "type": "string",
+      "description": "What the role is replacing / expanding. Useful context for the candidate (e.g., 'You'd be partnering with our Head of Engineering on the new fintech vertical')."
+    },
+    "performance_metrics": {
+      "type": "string",
+      "description": "What success looks like in the first 90 days / first year for this role."
+    },
+    "next_step_message": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Free-form message from the poster to the candidate. Writer surfaces this at the top of the drafted application."
+    },
+    "expires_at": {
+      "$ref": "common.json#/$defs/IsoDateTime",
+      "description": "When this L3 release expires. Default 14 days from released_at — also the auto-refund deadline for the poster's credit balance."
+    }
+  },
+  "additionalProperties": false
+}

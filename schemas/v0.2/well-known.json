@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/well-known.json",
+  "title": "Kitsuno Handshake v0.2 — Self-hosted Discovery",
+  "description": "Federation primitive — any domain self-hosts Handshake v0.2 discovery by publishing this JSON at /.well-known/handshake-v0.2.json. Lists supported endpoints (cards, signal, l2, l3) and verifier keys. Other implementations look here first when contacting <domain>; if absent, they fall back to the Kitsuno directory.",
+  "type": "object",
+  "required": ["protocol_version", "operator_name", "endpoints", "verifier_keys"],
+  "properties": {
+    "protocol_version": { "type": "string", "const": "v0.2" },
+    "operator_name": {
+      "type": "string",
+      "description": "Display name of the operator hosting this endpoint set (e.g., 'Kitsuno', 'Acme ATS')."
+    },
+    "operator_domain": { "type": "string", "format": "hostname" },
+    "endpoints": {
+      "type": "object",
+      "required": ["cards_base"],
+      "properties": {
+        "cards_base": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URL where individual cards live, e.g., 'https://acme.example.com/handshake/v0.2/cards/'. Card URLs are <cards_base><slug>.json."
+        },
+        "cards_index": {
+          "type": "string",
+          "format": "uri",
+          "description": "Optional — paginated index of all cards hosted here. Same shape as directory.json."
+        },
+        "vacancy_signal": {
+          "type": "string",
+          "format": "uri",
+          "description": "Endpoint where seekers POST vacancy-signal messages back to this operator."
+        },
+        "l2_delivery": {
+          "type": "string",
+          "format": "uri",
+          "description": "Endpoint where vacancy agents receive L2 disclosures."
+        },
+        "l3_release": {
+          "type": "string",
+          "format": "uri",
+          "description": "Endpoint where seekers receive L3 releases."
+        }
+      },
+      "additionalProperties": false
+    },
+    "verifier_keys": {
+      "type": "array",
+      "description": "Public keys this operator uses to sign verification attestations. Allows other parties to validate attestations issued by this operator.",
+      "items": {
+        "type": "object",
+        "required": ["key_id", "algorithm", "public_key"],
+        "properties": {
+          "key_id": { "type": "string" },
+          "algorithm": { "type": "string", "enum": ["RS256", "ES256", "EdDSA"] },
+          "public_key": { "type": "string", "description": "PEM-encoded public key." },
+          "valid_from": { "$ref": "common.json#/$defs/IsoDateTime" },
+          "valid_until": { "$ref": "common.json#/$defs/IsoDateTime" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "supported_features": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["l1_fire", "vacancy_signal", "l2_disclosure", "l3_release", "challenge_response", "card_index"]
+      },
+      "uniqueItems": true,
+      "description": "Which protocol features this operator supports. Implementations check before initiating a flow."
+    },
+    "contact_email": { "type": "string", "format": "email" }
+  },
+  "additionalProperties": false
+}
