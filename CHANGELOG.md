@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Once v1.0 is released, this project will adhere to [Semantic Versioning](https://semver.org/).
 Until then, breaking changes between minor versions are expected.
 
+
+## [v0.2.1] — 2026-05-17
+
+Protocol refinements based on early implementation feedback.
+
+### Added
+
+- `geography.scope` enum ("global" | "regions") in seeker cards — controls whether the seeker accepts opportunities globally or only in specific countries.
+- `geography.countries_excluded` array in seeker cards — countries to exclude even if listed in `countries`. Exclusions always win over inclusions.
+
+### Changed
+
+- Trait field names in handshake policies canonicalized to dotted paths matching the actual JSON structure:
+  - `work_permit` → `work_permit.countries_authorized`
+  - `salary_min` → `salary_expectation.min.amount`
+  This eliminates the mismatch between spec field names and seeker card data paths.
 ## [v0.2] — 2026-05-15
 
 Second draft. Expands v0.1's foundational commitments into a fully specified
@@ -50,6 +66,10 @@ handshake between agents. Schemas published at
 
 ### Changed
 
+- Trait field names in handshake policies canonicalized to dotted paths matching the actual JSON structure:
+  - `work_permit` → `work_permit.countries_authorized`
+  - `salary_min` → `salary_expectation.min.amount`
+  This eliminates the mismatch between spec field names and seeker card data paths.
 - Vocabulary shift from `Invitation` / `Disclosure` to `L1 fire` / `L2
   disclosure` / `L3 release` to match the disclosure-tier model.
 - Compensation no longer carries a free-form `disclosure_trigger` string;

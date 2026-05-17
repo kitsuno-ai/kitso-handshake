@@ -17,80 +17,152 @@
     "expires_at"
   ],
   "properties": {
-    "card_id": { "type": "string", "format": "uuid" },
-    "slug": { "type": "string", "minLength": 1 },
-    "agent_id": { "$ref": "common.json#/$defs/AgentIdentifier" },
+    "card_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "slug": {
+      "type": "string",
+      "minLength": 1
+    },
+    "agent_id": {
+      "$ref": "common.json#/$defs/AgentIdentifier"
+    },
     "role_targets": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["role_family"],
+        "required": [
+          "role_family"
+        ],
         "properties": {
-          "role_family": { "type": "string" },
-          "role_title_keywords": { "type": "array", "items": { "type": "string" } },
+          "role_family": {
+            "type": "string"
+          },
+          "role_title_keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "seniority_range": {
             "type": "array",
-            "items": { "$ref": "common.json#/$defs/SeniorityLevel" },
+            "items": {
+              "$ref": "common.json#/$defs/SeniorityLevel"
+            },
             "uniqueItems": true
           },
-          "years_experience": { "type": "integer", "minimum": 0, "maximum": 50 }
+          "years_experience": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 50
+          }
         },
         "additionalProperties": false
       }
     },
     "skills": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "uniqueItems": true,
       "description": "Skills the seeker brings — what a vacancy agent matches against required_skills."
     },
     "languages": {
       "type": "array",
-      "items": { "$ref": "common.json#/$defs/LanguageProficiency" },
+      "items": {
+        "$ref": "common.json#/$defs/LanguageProficiency"
+      },
       "minItems": 1
     },
     "geography": {
       "type": "object",
-      "required": ["countries"],
+      "required": [
+        "countries"
+      ],
       "properties": {
         "countries": {
           "type": "array",
-          "items": { "$ref": "common.json#/$defs/IsoCountryCode" },
+          "items": {
+            "$ref": "common.json#/$defs/IsoCountryCode"
+          },
           "minItems": 1,
           "uniqueItems": true
         },
-        "cities": { "type": "array", "items": { "type": "string" } },
-        "willing_to_relocate": { "type": "boolean" }
+        "cities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "willing_to_relocate": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "regions"
+          ],
+          "description": "Geographic matching scope. 'global' accepts any location; 'regions' restricts to explicit countries list."
+        },
+        "countries_excluded": {
+          "type": "array",
+          "items": {
+            "$ref": "common.json#/$defs/IsoCountryCode"
+          },
+          "description": "Countries explicitly excluded even if present in 'countries'. Exclusions always win.",
+          "uniqueItems": true
+        }
       },
       "additionalProperties": false
     },
     "work_mode": {
       "type": "object",
-      "required": ["accepts"],
+      "required": [
+        "accepts"
+      ],
       "properties": {
         "accepts": {
           "type": "array",
-          "items": { "$ref": "common.json#/$defs/RemoteType" },
+          "items": {
+            "$ref": "common.json#/$defs/RemoteType"
+          },
           "minItems": 1,
           "uniqueItems": true
         },
-        "max_onsite_days_per_week": { "type": "integer", "minimum": 0, "maximum": 5 }
+        "max_onsite_days_per_week": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
       },
       "additionalProperties": false
     },
     "employment_types": {
       "type": "array",
-      "items": { "$ref": "common.json#/$defs/EmploymentType" },
+      "items": {
+        "$ref": "common.json#/$defs/EmploymentType"
+      },
       "uniqueItems": true
     },
     "work_permit": {
       "type": "object",
       "description": "Countries where the seeker has work permit / right-to-work, sparing the L2 disclosure round-trip for a hard-stop policy_match.",
       "properties": {
-        "countries_authorized": { "type": "array", "items": { "$ref": "common.json#/$defs/IsoCountryCode" }, "uniqueItems": true },
-        "sponsorship_required": { "type": "boolean" }
+        "countries_authorized": {
+          "type": "array",
+          "items": {
+            "$ref": "common.json#/$defs/IsoCountryCode"
+          },
+          "uniqueItems": true
+        },
+        "sponsorship_required": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
@@ -98,17 +170,29 @@
       "type": "object",
       "description": "Optional at L1; vacancy may also ask for confirmation at L2 via structured questions.",
       "properties": {
-        "min": { "$ref": "common.json#/$defs/Money" },
-        "max": { "$ref": "common.json#/$defs/Money" },
-        "negotiable": { "type": "boolean" }
+        "min": {
+          "$ref": "common.json#/$defs/Money"
+        },
+        "max": {
+          "$ref": "common.json#/$defs/Money"
+        },
+        "negotiable": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "availability": {
       "type": "object",
       "properties": {
-        "earliest_start_date": { "type": "string", "format": "date" },
-        "notice_period_days": { "type": "integer", "minimum": 0 }
+        "earliest_start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "notice_period_days": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
       "additionalProperties": false
     },
@@ -119,17 +203,34 @@
     "consent_policy": {
       "type": "object",
       "description": "Standing authorizations the seeker has granted to its agent. Required for any L1 fire. Revocation MUST be respected within 60 seconds.",
-      "required": ["agent_may_signal_interest_without_human_review", "scope_expires_at"],
+      "required": [
+        "agent_may_signal_interest_without_human_review",
+        "scope_expires_at"
+      ],
       "properties": {
-        "agent_may_signal_interest_without_human_review": { "type": "boolean" },
-        "agent_may_disclose_l2_without_human_review": { "type": "boolean" },
-        "agent_may_release_l3_without_human_review": { "type": "boolean", "default": false, "description": "L3 release is human-in-loop by default. Pro feature to auto-approve." },
-        "scope_expires_at": { "$ref": "common.json#/$defs/IsoDateTime" }
+        "agent_may_signal_interest_without_human_review": {
+          "type": "boolean"
+        },
+        "agent_may_disclose_l2_without_human_review": {
+          "type": "boolean"
+        },
+        "agent_may_release_l3_without_human_review": {
+          "type": "boolean",
+          "default": false,
+          "description": "L3 release is human-in-loop by default. Pro feature to auto-approve."
+        },
+        "scope_expires_at": {
+          "$ref": "common.json#/$defs/IsoDateTime"
+        }
       },
       "additionalProperties": false
     },
-    "published_at": { "$ref": "common.json#/$defs/IsoDateTime" },
-    "expires_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "published_at": {
+      "$ref": "common.json#/$defs/IsoDateTime"
+    },
+    "expires_at": {
+      "$ref": "common.json#/$defs/IsoDateTime"
+    },
     "canonical_url": {
       "type": "string",
       "format": "uri",
