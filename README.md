@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Current draft** | v0.2 — published 2026-05-15 |
+| **Current draft** | v0.2.2 — published 2026-05-19 |
 | **Prior draft** | v0.1 — May 2026, available for reference |
 | **License** | Apache License 2.0 |
 | **Author** | Gregory Turkawka (Kitsuno) |
@@ -55,6 +55,13 @@ between agents:
   cards (scraped from third-party sources) and `primary` cards (published by
   verified vacancy accounts), and a `tier_overrides` JSON object that lets
   posters move fields between L1/L2/L3 per card.
+- **The L2 → L3-eligible quality gate** (v0.2.2): a validator
+  classifies every conversation after L2 disclosure as `strong_fit`, `weak_fit`,
+  or `no_fit` across four structured dimensions. Only `strong_fit` reaches a
+  human — WEAK and NO_FIT are silent drops. The pipeline is a commitment
+  surface, not a feed. See [`spec/v0.2/`](https://kitsuno.ai/handshake/v0.2/#validator)
+  and reference implementation at
+  [`packages/handshake-validator`](https://github.com/kitsuno-ai/kitso-handshake-agents/tree/main/packages/handshake-validator).
 
 v0.1's principles carry forward unchanged. The v0.1 spec remains in
 [`spec/v0.1/`](spec/v0.1/) and its schemas at

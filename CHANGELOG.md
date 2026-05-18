@@ -7,6 +7,37 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.2.2] — 2026-05-19
+
+Additive: the L2 → L3-eligible quality gate is now part of the protocol.
+No schema changes — conversations without validator metadata still parse.
+
+### Added
+
+- **`#validator` section in `spec/v0.2/`** describing the L2 → L3-eligible
+  gate. Three-bucket verdict (`strong_fit`, `weak_fit`, `no_fit`), four
+  structured `fit_dimensions` (`role_alignment`, `seniority_fit`,
+  `skill_overlap`, `context_fit`), and a `low_signal` flag for thin-data
+  vacancies. Only `strong_fit` advances a conversation to L3-eligible;
+  WEAK and NO_FIT are silent drops stored for analytics.
+- **Reference implementation:** `handshake-validator` v0.1.0 in the
+  [agents repo](https://github.com/kitsuno-ai/kitso-handshake-agents/tree/main/packages/handshake-validator).
+  Includes an abstract base class, a deterministic rule-based reference,
+  and an LLM-backed template with placeholders marked `# TUNE THIS`.
+- **Protocol-level anti-spam principle made explicit:** a pipeline is
+  a commitment surface, not a feed. Implementations MUST be conservative
+  about `strong_fit`.
+
+### Not changed
+
+- No schema field changes. Card payloads, L1/L2/L3 message shapes, and
+  HMAC signing are identical to v0.2.1. The validator adds a behaviour
+  contract at one specific point in the state machine; everything else
+  is the same.
+- The protocol does not mandate any particular classifier, rubric, or
+  model. It mandates the verdict shape and the placement of the call.
+  Operators tune the rest.
+
 ## [v0.2.1] — 2026-05-17
 
 Protocol refinements based on early implementation feedback.

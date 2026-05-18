@@ -191,6 +191,7 @@
     <div class="nav-links" id="navLinks">
       <a href="/content/en/">Articles</a>
       <a href="#protocol" class="active">Protocol</a>
+      <a href="#validator">Validator</a>
       <a href="#schemas">Schemas</a>
       <a href="https://github.com/kitsuno-ai/kitso-handshake">GitHub</a>
       <div class="theme-toggle" id="themeToggle">
@@ -313,6 +314,90 @@
   </div>
 
   <p>Each transition is HMAC-signed (Stripe-style, with timestamp). Every event is idempotent — receivers deduplicate by <code>event_id</code>. The conversation can terminate at any state with <code>declined</code> or expire silently after the L1 TTL (default 14 days).</p>
+</section>
+
+<section>
+  <h2 id="validator">The validator: anti-spam at the L2 boundary<a class="anchor" href="#validator">#</a></h2>
+
+  <p>The state machine above describes the protocol's <em>shape</em>. But there is one decision point inside it that deserves its own treatment: after <code>l2_disclosed</code> and before either side surfaces the conversation to a human, a <strong>validator</strong> decides whether this handshake is worth asking a human to look at.</p>
+
+  <p>Without this gate, the protocol would forward every policy-clearing match to a human inbox. The point of the protocol is the opposite: <strong>a pipeline is a commitment surface, not a feed.</strong> If everything that passes the deterministic policy gate lands in front of a person, the person learns to stop looking — and the protocol has nothing to show for itself.</p>
+
+  <h3 id="validator-buckets">Three buckets, four dimensions</h3>
+  <p>The validator returns one of three verdicts:</p>
+
+  <table class="tier-table">
+    <thead>
+      <tr><th>Verdict</th><th>Meaning</th><th>Effect on the conversation</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="tier-label">strong_fit</td>
+        <td>All four fit dimensions match. Worth a human's attention.</td>
+        <td>Conversation becomes L3-eligible. Seeker surfaces the match.</td>
+      </tr>
+      <tr>
+        <td class="tier-label">weak_fit</td>
+        <td>Adjacent but not core. Mixed dimension signals.</td>
+        <td>Silent drop. Stored for analytics. No notification either side.</td>
+      </tr>
+      <tr>
+        <td class="tier-label">no_fit</td>
+        <td>Structurally a different kind of work despite passing policy filters.</td>
+        <td>Silent drop. Stored for analytics. No notification either side.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>Every verdict includes four structured <code>fit_dimensions</code> for downstream analytics and tuning:</p>
+
+  <ul>
+    <li><code>role_alignment</code> — does the work itself overlap, beyond role family?</li>
+    <li><code>seniority_fit</code> — does the seniority expectation match the seeker's range?</li>
+    <li><code>skill_overlap</code> — substantive overlap, not just keyword surface?</li>
+    <li><code>context_fit</code> — country, language, employment shape, work mode?</li>
+  </ul>
+
+  <p>A <code>low_signal</code> flag is set automatically when the vacancy description is shorter than ~800 characters — distinguishing <em>weak fit because the data is thin</em> from <em>weak fit because actually weak</em>. Operators tune this threshold to their corpus.</p>
+
+  <h3 id="validator-where">Where it fires</h3>
+  <p>The validator runs once per handshake conversation, after both L2 disclosures have been exchanged. The annotation on the state machine above — <em>human release · L3</em> — is the moment the validator's verdict matters: a STRONG verdict makes the conversation L3-eligible (the human can choose to cross the bridge); WEAK or NO_FIT block the L3 release pathway without telling either party.</p>
+
+  <h3 id="validator-output">Output shape</h3>
+  <p>The verdict is a strict JSON object. Implementations across any model or rubric must conform to this shape so downstream consumers (pipeline UIs, analytics, feedback loops) can interoperate:</p>
+
+  <pre><code class="lang-json">{
+  "verdict":      "strong_fit" | "weak_fit" | "no_fit",
+  "reason":       "&lt;one sentence, candidate-facing, &le;200 chars&gt;",
+  "fit_dimensions": {
+    "role_alignment":   "match" | "partial" | "miss",
+    "seniority_fit":    "match" | "partial" | "miss",
+    "skill_overlap":    "match" | "partial" | "miss",
+    "context_fit":      "match" | "partial" | "miss"
+  },
+  "low_signal":   true | false
+}</code></pre>
+
+  <h3 id="validator-privacy">Privacy properties</h3>
+  <p>The validator's verdict is asymmetric by design.</p>
+  <ul>
+    <li><strong>The vacancy side learns nothing new.</strong> Verdicts never cross the agent boundary toward the poster. Strong fits arrive in the poster's inbox the same way they would have via any other path — the validator's role is upstream of that surfacing, not part of it.</li>
+    <li><strong>The seeker side learns only of STRONG fits.</strong> The <code>reason</code> text shows up on the pipeline card as the "why this matched" explanation. WEAK and NO_FIT verdicts never reach a seeker UI — they would only train the seeker to mistrust their own pipeline.</li>
+    <li><strong>No PII leaves the validator.</strong> Operators are expected to bundle L1 and L2 fields only; identity-revealing fields (professional summary, contact info, any L3 PRS entries) are out of scope. The validator's input bundle is no more sensitive than what already crossed the L2 boundary.</li>
+  </ul>
+
+  <h3 id="validator-reference">Reference implementation</h3>
+  <p>The <a href="https://github.com/kitsuno-ai/kitso-handshake-agents/tree/main/packages/handshake-validator"><code>handshake-validator</code></a> package in the agents monorepo ships:</p>
+  <ul>
+    <li>A <code>HandshakeValidator</code> abstract base class — operators subclass and plug in their own classifier.</li>
+    <li>A <code>RuleBasedValidator</code> reference implementation. Deterministic, no LLM, no network. Useful as a baseline, as a no-network fallback, or simply to run the protocol end-to-end without a model dependency.</li>
+    <li>An <code>LLMValidatorTemplate</code> example with the prompt shape and fallback handling that any LLM-backed validator should mirror — placeholders marked <code># TUNE THIS</code> for rubric, model selection, and JSON parsing.</li>
+  </ul>
+  <p>The protocol does not mandate any particular classifier. It mandates the contract: a (seeker_card, vacancy_card) pair in, a Verdict out, never raising. Operators running real handshakes at volume should expect to replace the rule-based baseline with a tuned classifier of their own.</p>
+
+  <div class="callout">
+    <p><strong>The anti-spam principle in one line:</strong> be conservative about <code>strong_fit</code>. A missed strong is recoverable; a noisy pipeline is not.</p>
+  </div>
 </section>
 
 <section>
