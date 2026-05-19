@@ -402,19 +402,30 @@
 
 <section>
   <h2 id="federation">Federation: protocol, not platform<a class="anchor" href="#federation">#</a></h2>
-  <p>Three primitives make Handshake v0.2 a federated standard rather than a platform-locked API:</p>
+  <p>Handshake v0.2 is a federated standard, not a platform-locked API. Four layers stack to make "everyone can find everyone" work without anyone owning the federation:</p>
 
-  <h3>1. Verifier attribution</h3>
-  <p>Every <code>verification</code> block names its issuer in a <code>verifier</code> field. Kitsuno is the launch verifier, but any party can issue attestations — ATSes can self-verify, recruiter directories can cross-attest, future identity protocols can become verifiers. Receiving agents check the verifier's published keys at <code>&lt;verifier&gt;/.well-known/handshake-v0.2.json</code> and decide whether to trust the attestation.</p>
+  <h3>1. The protocol primitive — well-known discovery</h3>
+  <p>Every operator publishes a single document at <code>/.well-known/handshake-v0.2.json</code> on their own domain. This is the only thing that <strong>MUST</strong> exist for an operator to be findable. It declares the operator's endpoints (cards index, vacancy-signal, L2 delivery, L3 release), verifier keys, and supported features. See <a href="well-known.json">well-known.json</a>.</p>
+  <p>Foreign agents that know an operator's domain GET this URL first. Everything else in the federation stack is a way to <em>learn</em> a domain you didn't already know.</p>
 
-  <h3>2. Self-hosted discovery</h3>
-  <p>Any domain self-hosts Handshake v0.2 endpoints by publishing a JSON document at <code>/.well-known/handshake-v0.2.json</code> describing supported endpoints (cards index, vacancy-signal, L2 delivery, L3 release) and verifier keys. Other implementations look here first. See <a href="well-known.json">well-known.json</a>.</p>
+  <h3>2. The cards feed — what crawlers actually consume</h3>
+  <p>Operators that want their cards to be discoverable point the <code>cards_index</code> field at a paginated feed. The feed format is specified in <a href="cards-feed.json">cards-feed.json</a>: a list of <code>(kind, slug, state_hash, uri)</code> tuples, cursor-paginated, with optional <code>?since=&lt;timestamp&gt;</code> for incremental crawls.</p>
+  <p>The <code>state_hash</code> is the federation's idempotency key. A foreign crawler caches <code>(operator, slug, state_hash)</code> tuples it has already evaluated and skips them on the next crawl. This is the same primitive a single operator uses internally to skip repeat scoring — exported across the federation boundary so the noise floor stays low even at protocol-wide scale.</p>
 
-  <h3>3. Public directory</h3>
-  <p>Kitsuno hosts a paginated, opt-in directory of verified vacancy accounts at <a href="directory.json"><code>kitsuno.ai/handshake/v0.2/directory.json</code></a>. Self-hosters who don't want to be in our directory simply omit themselves; seeker implementations fall back to <code>.well-known</code> on the target domain.</p>
+  <h3>3. Aggregators — many lists, none authoritative</h3>
+  <p>An aggregator is a list of operators someone curates. Kitsuno hosts one at <a href="directory.json"><code>kitsuno.ai/handshake/v0.2/directory.json</code></a> using the <a href="directory.json">directory.json</a> schema. <strong>This is one aggregator among many possible aggregators.</strong> The schema is the interface contract; the data is one operator's curation.</p>
+  <p>Anyone can run an aggregator — at their own domain following the directory.json schema, or as a plain GitHub repository, or as a Mastodon list, or as a shared spreadsheet. <strong>Multiple aggregators with different curation policies is the desired state, not a bug.</strong> A foreign agent picks whichever aggregator(s) it trusts.</p>
+  <p>The launch reference aggregator is at <a href="https://github.com/kitsuno-ai/handshake-discovery">github.com/kitsuno-ai/handshake-discovery</a> — a public, Apache-2.0, plain-JSON list of well-known URLs. Operators add themselves by opening a pull request. Forks are welcome and expected.</p>
+
+  <h3>4. Announcement channels — propagation, not infrastructure</h3>
+  <p>Operators MAY announce their well-known URL anywhere they reach their audience: a Mastodon post, a Moltbook entry, a BlueSky thread, a Substack note, a podcast mention, a tweet, a GitHub README, an email signature. <strong>The protocol does not specify any announcement channel.</strong> These are signal multipliers that point at the well-known URL — they are not part of the protocol's authoritative surface.</p>
+  <p>A future bot crawling the web for <code>/.well-known/handshake-v0.2.json</code> files is as valid a discovery mechanism as any aggregator. The federation has no gatekeeper.</p>
+
+  <h3 id="federation-verifier">Verifier attribution</h3>
+  <p>Every <code>verification</code> block names its issuer in a <code>verifier</code> field. Kitsuno is the launch verifier, but any party can issue attestations — ATSes can self-verify, recruiter directories can cross-attest, future identity protocols can become verifiers. Receiving agents fetch <code>&lt;verifier&gt;/.well-known/handshake-v0.2.json</code>, read its <code>verifier_keys</code>, and decide whether to trust the attestation.</p>
 
   <div class="callout">
-    <p><strong>What this means for ATSes:</strong> integrate once, accept verified candidate intent from any compliant seeker — Kitsuno or otherwise. The unit of value is the qualified candidate, not the seeker's brand.</p>
+    <p><strong>What this means in practice:</strong> Kitsuno propagates its own feed alongside everyone else, on the same terms. We are one node in a federation we don't own. If we disappeared tomorrow, every other operator's well-known URL would keep working, every aggregator could be re-curated by someone else, and the protocol would continue.</p>
   </div>
 </section>
 
@@ -454,6 +465,10 @@
     <div class="schema-card">
       <h4><a href="directory.json">directory.json</a></h4>
       <p>Public, paginated, opt-in directory of verified vacancy accounts. Federation primitive.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="cards-feed.json">cards-feed.json</a></h4>
+      <p>Paginated card index format. What an operator's <code>cards_index</code> URL returns — list of (kind, slug, state_hash, uri) tuples with cursor pagination and incremental crawl support.</p>
     </div>
     <div class="schema-card">
       <h4><a href="well-known.json">well-known.json</a></h4>

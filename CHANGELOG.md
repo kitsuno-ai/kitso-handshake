@@ -7,6 +7,34 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.3.0] — 2026-05-19
+
+Additive: discovery layer formalized. The federation primitive (`/.well-known/handshake-v0.2.json`) was already specced in v0.2, but the cards-feed format that operators point at from `cards_index` was unspecified. v0.3.0 fills that gap and clarifies the four-layer model: protocol primitive → cards feed → aggregators → announcement channels.
+
+### Added
+
+- **`cards-feed.json` schema** — paginated index format that `cards_index` URLs return. List of `(kind, slug, state_hash, uri, card_authority, updated_at)` tuples. Cursor pagination and `?since=<timestamp>` for incremental crawls. Reuses the v0.2.1 `state_hash` primitive across the federation boundary as the foreign-crawler idempotency key.
+- **`aggregator_listings` optional field on `well-known.json`** — informational list of aggregator registries the operator self-declares as listed in. No protocol meaning; helps foreign agents cross-reference.
+- **Rewrite of the `#federation` section in the spec page** — explicit four-layer model (protocol primitive / cards feed / aggregators / announcement channels). Names announcement channels (Mastodon, BlueSky, Moltbook, etc.) as non-normative signal multipliers, not infrastructure.
+- **Reference aggregator at [github.com/kitsuno-ai/handshake-discovery](https://github.com/kitsuno-ai/handshake-discovery)** — public, Apache-2.0, plain-JSON list of operator well-known URLs. PR-based. Forks expected.
+
+### Clarified (non-breaking)
+
+- `endpoints.cards_index` in `well-known.json` — description now states it returns a `cards-feed.json` shaped document and lists `?since=` and `?cursor=` query parameters.
+- `items[].card_index_url` in `directory.json` — description now states it returns a `cards-feed.json` shaped document.
+
+### Not changed
+
+- No card payload changes (vacancy-card, seeker-card unchanged).
+- No L1/L2/L3 message shape changes.
+- No HMAC signing changes.
+- v0.2 implementations continue to interoperate. The cards-feed format is what was missing; nothing else moves.
+
+### Strategic frame
+
+Discovery in Handshake v0.2 explicitly does not centralize. Kitsuno publishes a feed at `kitsuno.ai/.well-known/handshake-v0.2.json` and `kitsuno.ai/handshake/v0.2/cards-index.json` like any other operator. The aggregator at `github.com/kitsuno-ai/handshake-discovery` is one list among many possible lists. Competing aggregators are healthy. Multiple announcement channels are healthy. The protocol's only authoritative surface is the well-known URL on each operator's own domain.
+
+
 ## [v0.2.2] — 2026-05-19
 
 Additive: the L2 → L3-eligible quality gate is now part of the protocol.

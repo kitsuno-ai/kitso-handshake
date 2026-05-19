@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/cards-feed.json",
+  "title": "Kitsuno Handshake v0.2 — Cards Feed",
+  "description": "Paginated index of vacancy and seeker cards published by one operator. Returned by the cards_index URL declared in /.well-known/handshake-v0.2.json and by each item.card_index_url in directory.json. Foreign agents poll this to discover new or changed cards without fetching every card every time — the (slug, state_hash) pair is the idempotency key, identical to the pair-state idempotency used internally for seeker scoring.",
+  "type": "object",
+  "required": ["protocol_version", "operator_domain", "generated_at", "cards"],
+  "properties": {
+    "protocol_version": { "type": "string", "const": "v0.2" },
+    "operator_domain": {
+      "type": "string",
+      "format": "hostname",
+      "description": "Domain of the operator publishing this feed. Must match the host serving the feed."
+    },
+    "operator_name": {
+      "type": "string",
+      "description": "Display name of the operator (informational)."
+    },
+    "generated_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "cursor_next": {
+      "type": ["string", "null"],
+      "description": "Opaque cursor for the next page. Null when no more pages. Foreign agents poll with ?cursor=<value>."
+    },
+    "since": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "If the request used ?since=<timestamp>, the operator echoes that value here. The feed contains only cards with updated_at >= since."
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "slug", "state_hash", "uri", "updated_at"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["vacancy", "seeker"],
+            "description": "Which card schema the uri returns."
+          },
+          "slug": {
+            "type": "string",
+            "description": "Stable per-operator identifier. Together with operator_domain, globally unique."
+          },
+          "state_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "SHA-256 over the canonical JSON of the matching-relevant card fields. Foreign agents use this as the idempotency key — same (slug, state_hash) means same card-state, skip re-evaluation. See state-hash-v0.1.0 in the agents repo for the canonicalization algorithm."
+          },
+          "uri": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where to GET the full card payload (vacancy-card.json or seeker-card.json shaped, per kind)."
+          },
+          "card_authority": {
+            "type": "string",
+            "enum": ["primary", "mirror"],
+            "description": "primary = published by the verified subject (or their authorized agent). mirror = scraped from a third-party source; the publishing operator does not speak for the subject. Foreign agents may choose to engage or skip mirror cards based on their own trust policy.",
+            "default": "primary"
+          },
+          "updated_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+          "expires_at": {
+            "$ref": "common.json#/$defs/IsoDateTime",
+            "description": "Optional. Cards SHOULD declare an expiry; agents MUST treat expired cards as gone."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

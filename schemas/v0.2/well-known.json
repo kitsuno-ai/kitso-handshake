@@ -24,7 +24,7 @@
         "cards_index": {
           "type": "string",
           "format": "uri",
-          "description": "Optional — paginated index of all cards hosted here. Same shape as directory.json."
+          "description": "Optional — paginated index of all cards hosted by this operator. Returns a cards-feed.json shaped document. Supports ?since=<iso-datetime> and ?cursor=<opaque> query parameters for incremental crawling."
         },
         "vacancy_signal": {
           "type": "string",
@@ -68,6 +68,14 @@
       },
       "uniqueItems": true,
       "description": "Which protocol features this operator supports. Implementations check before initiating a flow."
+    },
+    "aggregator_listings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      },
+      "description": "Informational — URLs of public aggregator registries where this operator self-declares as listed. No protocol meaning; helps a foreign agent that found this operator via one aggregator confirm what other registries also list it. Example: [\"https://github.com/kitsuno-ai/handshake-discovery\"]."
     },
     "contact_email": { "type": "string", "format": "email" }
   },

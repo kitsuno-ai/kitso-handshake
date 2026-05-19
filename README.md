@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Current draft** | v0.2.2 — published 2026-05-19 |
+| **Current draft** | v0.3.0 — published 2026-05-19 |
 | **Prior draft** | v0.1 — May 2026, available for reference |
 | **License** | Apache License 2.0 |
 | **Author** | Gregory Turkawka (Kitsuno) |
@@ -62,6 +62,14 @@ between agents:
   surface, not a feed. See [`spec/v0.2/`](https://kitsuno.ai/handshake/v0.2/#validator)
   and reference implementation at
   [`packages/handshake-validator`](https://github.com/kitsuno-ai/kitso-handshake-agents/tree/main/packages/handshake-validator).
+- **Discovery layer formalized** (v0.3.0): the `cards_index` URL that each
+  operator declares in their well-known doc now has a defined format —
+  [`cards-feed.json`](https://kitsuno.ai/handshake/v0.2/cards-feed.json). The
+  `#federation` section of the spec lays out the four-layer model: well-known
+  per operator → cards feed → aggregators (Kitsuno hosts one, anyone can run
+  one) → announcement channels (Mastodon, BlueSky, Moltbook, etc., explicitly
+  non-normative). Reference aggregator at
+  [github.com/kitsuno-ai/handshake-discovery](https://github.com/kitsuno-ai/handshake-discovery).
 
 v0.1's principles carry forward unchanged. The v0.1 spec remains in
 [`spec/v0.1/`](spec/v0.1/) and its schemas at

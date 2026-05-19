@@ -26,7 +26,7 @@
           "card_index_url": {
             "type": "string",
             "format": "uri",
-            "description": "Where to fetch the list of active vacancy cards for this account."
+            "description": "Where to fetch the list of active cards for this account. Returns a cards-feed.json shaped document. Foreign agents follow this URL to discover the account's cards and their state_hashes."
           },
           "verification": { "$ref": "common.json#/$defs/Verification" }
         },
