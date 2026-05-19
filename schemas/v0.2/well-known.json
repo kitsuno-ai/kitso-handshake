@@ -4,7 +4,7 @@
   "title": "Kitsuno Handshake v0.2 — Self-hosted Discovery",
   "description": "Federation primitive — any domain self-hosts Handshake v0.2 discovery by publishing this JSON at /.well-known/handshake-v0.2.json. Lists supported endpoints (cards, signal, l2, l3) and verifier keys. Other implementations look here first when contacting <domain>; if absent, they fall back to the Kitsuno directory.",
   "type": "object",
-  "required": ["protocol_version", "operator_name", "endpoints", "verifier_keys"],
+  "required": ["protocol_version", "operator_name", "endpoints"],
   "properties": {
     "protocol_version": { "type": "string", "const": "v0.2" },
     "operator_name": {

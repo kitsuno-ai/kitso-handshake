@@ -7,6 +7,21 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.3.1] — 2026-05-19
+
+Clarifying patch: `verifier_keys` is now explicitly optional on `well-known.json`.
+
+### Changed
+
+- **`well-known.json`** — `verifier_keys` removed from top-level `required`. Operators that don't yet issue signed inter-operator attestations (i.e. everyone today) MAY omit the field entirely instead of publishing an empty array stub. When `verifier_keys` is present it MUST still conform to the existing item schema.
+
+### Rationale
+
+The handshake protocol works today over HTTPS + the `directory.json` source-of-truth. Signed cross-operator attestations are a future-tier feature; requiring every operator to declare an empty `verifier_keys` field forced cargo-cult shape. Foreign agents reading a well-known MUST treat absence and `[]` as equivalent — "this operator does not sign attestations."
+
+No breaking changes: well-known docs that declare `verifier_keys` (empty or populated) remain valid.
+
+
 ## [v0.3.0] — 2026-05-19
 
 Additive: discovery layer formalized. The federation primitive (`/.well-known/handshake-v0.2.json`) was already specced in v0.2, but the cards-feed format that operators point at from `cards_index` was unspecified. v0.3.0 fills that gap and clarifies the four-layer model: protocol primitive → cards feed → aggregators → announcement channels.
