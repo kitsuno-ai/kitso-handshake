@@ -21,7 +21,7 @@
     "released_by": {
       "type": "object",
       "required": ["account_id", "actor_type"],
-      "description": "Who released L3. actor_type=human records the poster who clicked Engage (on_request intake). actor_type=agent_with_pre_authorization records an auto-release: either the vacancy is on_match and the seekers consent_policy.agent_may_release_l3_without_human_review=true (standing auth), or the seeker set l3_at_fit=true on a direct application (situated auth). On any agent-pre-authorized release the seeker is sent an l3_disclosed signal carrying destination (where the identity went) - the structural floor for a disclosure the seeker did not witness.",
+      "description": "Who released L3. actor_type=human records the poster who clicked Engage (on_request intake). actor_type=agent_with_pre_authorization records an auto-release: either the vacancy is on_match and the seeker's consent_policy.agent_may_release_l3_without_human_review=true (standing auth), or the seeker set l3_at_fit=true on a direct application (situated auth). On any agent-pre-authorized release the seeker is sent an l3_disclosed signal carrying destination (where the identity went) - the structural floor for a disclosure the seeker did not witness.",
       "properties": {
         "account_id": { "type": "string", "format": "uuid" },
         "actor_type": { "type": "string", "enum": ["human", "agent_with_pre_authorization"] },
