@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/seeker-application.json",
+  "title": "Kitsuno Handshake — Seeker Application (seeker → vacancy, human-initiated L1)",
+  "description": "A direct, human-initiated application to a specific vacancy card. This is an L1 fire (handshake.l1_fired) carrying initiated_by='human'. It is NOT a separate state arc: it enters the same conversation state machine at l1_fired, runs the same deterministic policy_match (L1) and validator strong-fit gate (L2) as an agent-initiated fire, and resolves L3 via the same intake_mode x consent grid. The only differences are (1) a human acted, so the conversation owes a report-back signal on a terminal L2 no-match (see signal.json, 'human interaction that creates signal is reported back'), and (2) it MAY carry l3_at_fit to pre-authorize identity disclosure for THIS vacancy at validated fit. Mint-on-apply (a brand-new seeker becoming carded BY applying) is an operator-side on-ramp that produces this event; its mechanics are out of protocol scope.",
+  "type": "object",
+  "required": [
+    "event_type",
+    "event_id",
+    "fired_at",
+    "conversation_id",
+    "seeker_card_url",
+    "seeker_card_id",
+    "vacancy_card_id",
+    "initiated_by"
+  ],
+  "properties": {
+    "event_type": { "type": "string", "const": "handshake.l1_fired" },
+    "event_id": { "type": "string", "format": "uuid", "description": "Idempotency key — receivers MUST deduplicate by this." },
+    "fired_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "conversation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Stable identifier for this seeker↔vacancy handshake. PER-PAIR COLLISION RULE: if a conversation already exists for this (seeker_card_id, vacancy_card_id) pair from prior discovery, the direct application MUST attach to and advance the existing conversation_id — never open a duplicate, never reset disclosure. Disclosure state is monotonic per pair."
+    },
+    "initiated_by": {
+      "type": "string",
+      "const": "human",
+      "description": "Always 'human' for a seeker-application. This is what distinguishes a direct apply from an agent-autonomous L1 fire (see l1-fire.json initiated_by, default 'agent'). The human-acted property is what obligates terminal report-back."
+    },
+    "seeker_card_url": { "type": "string", "format": "uri", "description": "Where the vacancy agent should GET the seeker card." },
+    "seeker_card_id": { "type": "string", "format": "uuid" },
+    "vacancy_card_id": { "type": "string", "format": "uuid" },
+    "l3_at_fit": {
+      "type": "boolean",
+      "default": false,
+      "description": "Per-application, situated pre-authorization: 'disclose my L3 identity to THIS vacancy the moment a strong fit is validated.' Raises disclosure for this conversation only; does NOT modify the seeker card's standing consent_policy. A standing-OFF seeker uses this to say yes to one specific vacancy. STILL gated by L1 + L2 first — l3_at_fit is not L3-on-submit; it resolves only after the validator clears. Revocable until L3 actually fires (consistent with the card's revocation commitment), because the human is present and acting on this specific vacancy. A PDF/CV uploaded at apply implies l3_at_fit=true (uploading identity IS the disclosure act), but the field stays explicit so a seeker may pre-authorize without attaching a document (agent discloses from PRS instead)."
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Deterministic policy_match score, as in l1-fire.json. A human-initiated application does NOT bypass qualification — it must clear the same gate; a sub-threshold direct apply never advances to a billable L3."
+    },
+    "policy_match_result": {
+      "type": "object",
+      "properties": {
+        "matched_criteria": { "type": "array", "items": { "type": "string" } },
+        "unmatched_criteria": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "seeker_agent_id": { "$ref": "common.json#/$defs/AgentIdentifier" },
+    "seeker_verification": { "$ref": "common.json#/$defs/Verification" },
+    "callback_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Where the vacancy agent POSTs the vacancy-signal response AND where the conversation's signals owed to the seeker (l2_no_match feedback, l3_disclosed, l3_initiated) are delivered. Required for human-initiated fires because report-back is owed."
+    },
+    "ttl_seconds": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 1209600,
+      "description": "Seconds before this L1 expires if no vacancy-signal received. Default 14 days."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "l3_at_fit": { "const": true } } },
+      "then": { "required": ["callback_url"] }
+    }
+  ]
+}

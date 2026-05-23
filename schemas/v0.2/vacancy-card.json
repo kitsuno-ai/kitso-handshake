@@ -126,6 +126,12 @@
       "description": "Email address or webhook URL depending on l2_delivery_channel. Withheld from public card surface."
     },
     "tier_overrides": { "$ref": "common.json#/$defs/TierOverrides" },
+    "l3_intake_mode": {
+      "type": "string",
+      "enum": ["on_request", "on_match"],
+      "default": "on_request",
+      "description": "How this vacancy takes identity (L3) once a candidate is L2-eligible. on_request = screened intake (today's model): receive L2, a human reviews and requests L3 per candidate. on_match = open intake: the L3 of any L2-eligible candidate whose consent permits it is auto-delivered to the vacancy's L3 endpoint. The vacancy preference NEVER overrides the seeker — a seeker who has not consented to auto-disclose is still asked (signal l3_initiated). Backward-compatible: absent = on_request, so existing v0.2 cards behave unchanged. Foreign agents that do not understand this field MUST treat it as on_request."
+    },
     "verification": {
       "$ref": "common.json#/$defs/Verification",
       "description": "How the vacancy account behind this card was verified."

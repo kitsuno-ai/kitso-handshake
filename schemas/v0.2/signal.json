@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kitsuno.ai/handshake/v0.2/signal.json",
+  "title": "Kitsuno Handshake — Signal (conversation result event)",
+  "description": "A unified result event emitted on a meaningful edge of a handshake conversation and delivered to the registered endpoint of the party it is owed to. INVARIANT: human interaction that creates signal is reported back to the counterparty; agent-scale discovery that no human acted on terminates silently. The thousands of ambient L1/L2 conversations a passively-discoverable seeker fans out across emit NO signal when they die at L1/L2 — only meaningful, human-touched, or identity-crossing edges signal. A signal NEVER carries downstream behaviour (the protocol drafts/sends nothing); it states what happened and, where relevant, where. What a receiving product does with a signal (Writer drafts, recruiter inbox row, CRM webhook, nothing) is operator-defined and out of protocol scope. The protocol states WHAT resolved (signal_type, decided_by); whether and how a resolution is billable is entirely operator-defined and is NOT carried on the wire.",
+  "type": "object",
+  "required": [
+    "event_type",
+    "event_id",
+    "emitted_at",
+    "conversation_id",
+    "signal_type",
+    "owed_to"
+  ],
+  "properties": {
+    "event_type": { "type": "string", "const": "handshake.signal" },
+    "event_id": { "type": "string", "format": "uuid", "description": "Idempotency key — receivers MUST deduplicate by this." },
+    "emitted_at": { "$ref": "common.json#/$defs/IsoDateTime" },
+    "conversation_id": { "type": "string", "format": "uuid" },
+    "signal_type": {
+      "type": "string",
+      "enum": [
+        "l2_delivered",
+        "l3_initiated",
+        "l3_disclosed",
+        "l2_no_match",
+        "l2_refused",
+        "l3_refused"
+      ],
+      "description": "l2_delivered = L2 disclosure arrived at the vacancy (owed_to vacancy). l3_initiated = a human/poster reached for identity, the seeker is being asked (owed_to seeker). l3_disclosed = identity was released — INCLUDING agent-pre-authorized auto-fire the seeker did not witness; MUST carry destination (owed_to seeker). l2_no_match = a human-initiated (direct-apply) conversation terminated at the validator strong-fit gate; owed_to seeker ONLY when the L1 fire was initiated_by=human — agent-initiated discovery that fails L2 emits nothing. l2_refused / l3_refused = a party declined; a refusal is a resolved signal (owed_to the counterparty), and at L3 it is billable."
+    },
+    "owed_to": {
+      "type": "string",
+      "enum": ["seeker", "vacancy"],
+      "description": "Which party this signal is reported to. Determined by who performed the act being reported on, not who emitted the event."
+    },
+    "decided_by": {
+      "type": "string",
+      "enum": ["seeker", "vacancy", "validator", "system"],
+      "description": "Who produced this outcome. For refusals, the party that declined. For l2_no_match, 'validator'. For expiry-driven results, 'system'. Absent for plain deliveries (l2_delivered)."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Optional machine-readable category for analytics. Receivers MUST NOT surface user-facing text from this field without sanitization.",
+      "examples": ["skill_mismatch", "geo_mismatch", "salary_mismatch", "not_strong_fit", "role_filled", "seeker_not_interested", "other"]
+    },
+    "destination": {
+      "type": "object",
+      "description": "REQUIRED when signal_type=l3_disclosed. Tells a seeker who never witnessed an auto-fire WHERE their identity went — the structural floor for agent-pre-authorized disclosure. Names the receiving vacancy/operator; does not describe what they will do with it.",
+      "properties": {
+        "vacancy_card_id": { "type": "string", "format": "uuid" },
+        "vacancy_title": { "type": "string" },
+        "card_authority": { "type": "string", "enum": ["primary", "mirror"] },
+        "operator": { "type": "string", "format": "hostname", "description": "Domain of the operator whose endpoint received the L3 event." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "signal_type": { "const": "l3_disclosed" } } },
+      "then": { "required": ["destination"] }
+    }
+  ]
+}

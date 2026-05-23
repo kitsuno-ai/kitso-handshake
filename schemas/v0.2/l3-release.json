@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://kitsuno.ai/handshake/v0.2/l3-release.json",
   "title": "Kitsuno Handshake v0.2 — L3 Release (vacancy → seeker)",
-  "description": "The human hand-off message. After reviewing the L2 disclosure, the vacancy poster (human, in their dashboard) clicks 'Engage' / 'Release L3'. This message carries the additional information load — hiring manager identity, exact compensation, confidential client identity (if applicable), interview scheduling, internal context. Triggers the seeker's Writer to draft an outbound application on behalf of the principal. Decrements the vacancy's credit balance by 1 (subject to the 14-day auto-refund cron).",
+  "description": "The human hand-off message. After reviewing the L2 disclosure, the vacancy poster (human, in their dashboard) clicks 'Engage' / 'Release L3'. This message carries the additional information load — hiring manager identity, exact compensation, confidential client identity (if applicable), interview scheduling, internal context. The protocol delivers this event to the conversation registered L3 endpoint and emits the corresponding signal (signal.json: l3_disclosed, carrying destination). What the receiving product does with it - draft an application, create a recruiter-inbox row, fire a CRM webhook, or nothing - is operator-defined and OUT of protocol scope; the handshake itself drafts and sends nothing. Billing follows pay-for-resolution-not-outcome: a charge attaches when L3 is requested or disclosed and resolves to accept or decline (both are signals); only pure ghosting (no response within the window) refunds. L1/L2 (anonymous tiers) are never billed.",
   "type": "object",
   "required": [
     "event_type",
@@ -21,7 +21,7 @@
     "released_by": {
       "type": "object",
       "required": ["account_id", "actor_type"],
-      "description": "Human or human-supervised release. Auto-release by agent requires the seeker's consent_policy.agent_may_release_l3_without_human_review=true on the receiving side; this field still records who clicked.",
+      "description": "Who released L3. actor_type=human records the poster who clicked Engage (on_request intake). actor_type=agent_with_pre_authorization records an auto-release: either the vacancy is on_match and the seekers consent_policy.agent_may_release_l3_without_human_review=true (standing auth), or the seeker set l3_at_fit=true on a direct application (situated auth). On any agent-pre-authorized release the seeker is sent an l3_disclosed signal carrying destination (where the identity went) - the structural floor for a disclosure the seeker did not witness.",
       "properties": {
         "account_id": { "type": "string", "format": "uuid" },
         "actor_type": { "type": "string", "enum": ["human", "agent_with_pre_authorization"] },

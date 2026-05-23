@@ -18,6 +18,12 @@
   "properties": {
     "event_type": { "type": "string", "const": "handshake.l1_fired" },
     "event_id": { "type": "string", "format": "uuid", "description": "Idempotency key — receivers MUST deduplicate by this." },
+    "initiated_by": {
+      "type": "string",
+      "enum": ["agent", "human"],
+      "default": "agent",
+      "description": "Who originated this fire. 'agent' = the seeker agent fired autonomously under consent_policy.agent_may_signal_interest_without_human_review (passive discovery; ambient, high-volume; a terminal L2 no-match is SILENT). 'human' = a direct application by the principal (see seeker-application.json); the human-acted property obligates a report-back signal on terminal L2 no-match and permits an inline l3_at_fit. Absent = 'agent'."
+    },
     "fired_at": { "$ref": "common.json#/$defs/IsoDateTime" },
     "conversation_id": { "type": "string", "format": "uuid", "description": "Stable identifier for this seeker↔vacancy handshake. Used in all subsequent state transitions." },
     "seeker_card_url": { "type": "string", "format": "uri", "description": "Where the vacancy agent should GET the seeker card." },

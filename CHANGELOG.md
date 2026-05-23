@@ -7,6 +7,30 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.4.0] — 2026-05-23
+
+Consent-symmetric handshake. The protocol stops being discovery-only and one-directional: either party can now initiate, and disclosure is a two-sided preference resolved at match time rather than a hardwired vacancy→seeker direction. This is the conceptual boundary where Handshake became bidirectional.
+
+**Spec/protocol version bumps to v0.4.0; card wire-version stays v0.2** (schemas remain under `schemas/v0.2/`, well-known + cards-feed paths unchanged). The two are deliberately decoupled — the protocol's model can evolve without forcing federated operators to re-fetch from new URLs. v0.2 cards remain valid; every new field/event degrades gracefully.
+
+### Added
+
+- **`l1-fire.json` → `initiated_by`** (`agent` | `human`, default `agent`). `agent` = autonomous fire under standing consent (passive discovery; ambient, high-volume). `human` = direct application by the principal. The human-acted property is what obligates report-back. A single entry state (`l1_fired`) serves both directions; "seeker_applied" is the prose name for the human-initiated case, not a distinct state.
+- **`seeker-application.json`** (new) — the human-initiated L1. Carries the per-pair `conversation_id` collision rule (attach to and advance any existing conversation for the pair; never duplicate, never reset; disclosure is monotonic per pair) and an inline `l3_at_fit` (situated, this-vacancy-only pre-authorization of identity at validated fit; revocable until L3 fires; PDF-at-apply implies it but the field stays explicit). Still gated by L1 + L2 — a direct apply never buys an unqualified candidate into a billable L3.
+- **`vacancy-card.json` → `l3_intake_mode`** (`on_request` | `on_match`, default `on_request`). `on_request` = screened intake (today's model: review L2, request L3 per candidate). `on_match` = open intake (L3 of any L2-eligible consenting candidate auto-delivered to the vacancy's endpoint). The vacancy preference NEVER overrides the seeker. Backward-compatible; foreign agents treat an unknown value as `on_request`.
+- **`signal.json`** (new) — a unified, `signal_type`-discriminated result event (`l2_delivered`, `l3_initiated`, `l3_disclosed`, `l2_no_match`, `l2_refused`, `l3_refused`) delivered to the registered endpoint of the party it is `owed_to`. Replaces ad-hoc per-edge reporting and folds in disclosure notification. `l3_disclosed` MUST carry `destination` — the structural floor for an auto-fire the seeker never witnessed (it tells them WHERE their identity went). Carries `decided_by` + machine-readable `reason`. Whether a resolution is billable is operator-defined and is NOT carried on the wire.
+- **`common.json` → `ConversationState.not_advanced`** — terminal for a conversation that ends at the L2 validator gate.
+
+### Changed
+
+- **`common.json` — reporting invariant.** The state-machine description now states the governing rule: *human interaction that creates signal is reported back to the counterparty; agent-scale discovery that no human acted on terminates silently.* The thousands of ambient L1/L2 conversations a passively-discoverable seeker fans across do not emit per-failure signals — only meaningful, human-touched, or identity-crossing edges do. A direct-apply (`initiated_by=human`) L2 no-match is reported (`l2_no_match`); an agent-discovery L2 no-match is silent.
+- **`common.json` — `DisclosureTier` L2 wording** reconciled: L2 follows interest signalled *by either party* (vacancy-initiated in discovery, seeker-initiated on direct apply), resolving the latent asymmetry between the old wording and the `vacancy_signaled_interest` state.
+- **`l3-release.json` — protocol/operator boundary corrected.** The description previously claimed L3 release "triggers the seeker's Writer to draft an outbound application." It does not — the handshake drafts and sends nothing. The protocol delivers the L3 event to the conversation's registered endpoint and emits the `l3_disclosed` signal; what a receiving product does with it (draft, inbox row, CRM webhook, nothing) is operator-defined and out of scope. Billing prose updated to "pay for resolution, not outcome": a charge attaches when L3 is requested or disclosed and resolves to accept or decline (both signals); only pure ghosting refunds; L1/L2 are never billed. `released_by` now documents both auto-release paths (standing `on_match` + situated `l3_at_fit`) and the mandatory destination-carrying signal.
+
+### Federation impact
+
+All changes degrade gracefully. A v0.2-aware foreign agent keeps working: unknown `l3_intake_mode` → treat as `on_request`; unknown `initiated_by` → treat as `agent`; unknown state `not_advanced` → terminal it cannot advance; `signal.json` and `seeker-application.json` are new event types an older agent simply won't emit or consume. No well-known or cards-feed path changes; no re-signing of existing cards required.
+
 ## [v0.3.1] — 2026-05-19
 
 Clarifying patch: `verifier_keys` is now explicitly optional on `well-known.json`.

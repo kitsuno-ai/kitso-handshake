@@ -7,13 +7,13 @@
   "$defs": {
     "DisclosureTier": {
       "title": "Disclosure tier (L1/L2/L3)",
-      "description": "L1 = agent-to-agent public surface (mirrors a standard job ad). L2 = agent-to-agent after seeker signals interest (mirrors application-form screening). L3 = human-to-human after vacancy poster releases (carries identity, compensation specifics, calendar). Posters configure per-field which tier reveals which information; defaults are sensible for the 90% case.",
+      "description": "L1 = agent-to-agent public surface (mirrors a standard job ad). L2 = agent-to-agent after interest is signalled by either party (vacancy-initiated in discovery, seeker-initiated on direct apply); mirrors application-form screening. L3 = human-to-human after vacancy poster releases (carries identity, compensation specifics, calendar). Posters configure per-field which tier reveals which information; defaults are sensible for the 90% case.",
       "type": "string",
       "enum": ["L1", "L2", "L3"]
     },
     "ConversationState": {
       "title": "Handshake conversation state",
-      "description": "State machine for a single seeker↔vacancy handshake. Transitions are one-directional; declined / expired are terminal.",
+      "description": "State machine for a single seeker↔vacancy handshake. Disclosure is monotonic (advances only, consent at each step); declined / not_advanced / expired are terminal. The single entry state is l1_fired for BOTH directions — an agent-autonomous fire (initiated_by=agent) and a human direct apply (initiated_by=human; see l1-fire.json and seeker-application.json) enter the same machine. 'seeker_applied' is the prose name for the human-initiated case, not a distinct state. REPORTING INVARIANT: human interaction that creates signal is reported back to the counterparty (see signal.json); agent-scale discovery that no human acted on terminates silently — the thousands of ambient L1/L2 conversations a passive seeker fans across do not emit per-failure signals.",
       "type": "string",
       "enum": [
         "l1_fired",
@@ -21,6 +21,7 @@
         "l2_disclosed",
         "l2_delivered",
         "declined",
+        "not_advanced",
         "expired"
       ]
     },
