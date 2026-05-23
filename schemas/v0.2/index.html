@@ -254,7 +254,7 @@
       </tr>
       <tr>
         <td class="tier-label">L2</td>
-        <td>Machine → machine, after seeker signals interest</td>
+        <td>Machine → machine, after interest is signalled by either party</td>
         <td>Application form + recruiter pre-screen</td>
         <td>Detailed role description, full skill list, tech stack, benefits, screening questions answered by the seeker agent from the principal's career record (visa status, notice period, salary expectation, "Why this role?" — answered structurally where possible, generated where not).</td>
       </tr>
@@ -270,50 +270,95 @@
   <p>Posters configure per-field which tier reveals which information. Defaults align with standard ad practice and the EU pay-transparency directive; the <code>tier_overrides</code> field lets posters demote or promote specific fields for confidential searches or sensitive comp data.</p>
 
   <h3 id="state-machine">State machine<a class="anchor" href="#state-machine">#</a></h3>
-  <p>A single handshake between a seeker and a vacancy is one conversation with a deterministic state flow:</p>
+  <p>A single handshake between a seeker and a vacancy is one conversation with a deterministic, monotonic state flow — disclosure only ever advances, with consent at each step. There is one entry state, <code>l1_fired</code>, reached from <em>either</em> direction: a seeker agent firing autonomously during discovery (<code>initiated_by: agent</code>), or a human applying directly to a specific vacancy (<code>initiated_by: human</code> — the case we call <em>direct apply</em>). Both run the same deterministic <code>policy_match</code> (L1) and the same validator strong-fit gate (L2); they differ only in who initiated and what is therefore owed in return.</p>
 
   <div class="state-flow">
-    <svg viewBox="0 0 880 240" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
           <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
         </marker>
       </defs>
       <g font-family="JetBrains Mono, monospace" font-size="13" style="color: var(--text);" fill="currentColor">
-        <rect x="20" y="100" width="140" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
-        <text x="90" y="125" text-anchor="middle" font-weight="500">l1_fired</text>
-        <text x="90" y="145" text-anchor="middle" font-size="11" fill="var(--text-muted)">seeker → vacancy</text>
+        <!-- two entry sources into the single l1_fired state -->
+        <rect x="20" y="40" width="170" height="40" rx="6" fill="var(--surface-2)" stroke="var(--border-accent)" stroke-width="1"/>
+        <text x="105" y="58" text-anchor="middle" font-size="11">agent (discovery)</text>
+        <text x="105" y="73" text-anchor="middle" font-size="11" fill="var(--text-muted)">initiated_by: agent</text>
 
-        <rect x="200" y="100" width="200" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
-        <text x="300" y="125" text-anchor="middle" font-weight="500">vacancy_signaled_interest</text>
-        <text x="300" y="145" text-anchor="middle" font-size="11" fill="var(--text-muted)">vacancy → seeker</text>
+        <rect x="20" y="170" width="170" height="40" rx="6" fill="var(--surface-2)" stroke="var(--border-accent)" stroke-width="1"/>
+        <text x="105" y="188" text-anchor="middle" font-size="11">human (direct apply)</text>
+        <text x="105" y="203" text-anchor="middle" font-size="11" fill="var(--text-muted)">initiated_by: human</text>
 
-        <rect x="440" y="100" width="160" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
-        <text x="520" y="125" text-anchor="middle" font-weight="500">l2_disclosed</text>
-        <text x="520" y="145" text-anchor="middle" font-size="11" fill="var(--text-muted)">seeker → vacancy</text>
+        <rect x="240" y="105" width="140" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="310" y="130" text-anchor="middle" font-weight="500">l1_fired</text>
+        <text x="310" y="148" text-anchor="middle" font-size="11" fill="var(--text-muted)">single entry</text>
 
-        <rect x="640" y="100" width="180" height="50" rx="6" fill="var(--fox)" stroke="var(--fox)" stroke-width="1.5"/>
-        <text x="730" y="125" text-anchor="middle" font-weight="500" fill="#fff">l2_delivered</text>
-        <text x="730" y="145" text-anchor="middle" font-size="11" fill="#fff" opacity="0.8">vacancy → seeker</text>
+        <rect x="420" y="105" width="150" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="495" y="124" text-anchor="middle" font-weight="500" font-size="12">interest signalled</text>
+        <text x="495" y="142" text-anchor="middle" font-size="11" fill="var(--text-muted)">either party</text>
 
-        <line x1="165" y1="125" x2="195" y2="125" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
-        <line x1="405" y1="125" x2="435" y2="125" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
-        <line x1="605" y1="125" x2="635" y2="125" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+        <rect x="610" y="105" width="120" height="50" rx="6" fill="var(--fox-glow)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="670" y="130" text-anchor="middle" font-weight="500">l2_disclosed</text>
+        <text x="670" y="148" text-anchor="middle" font-size="11" fill="var(--text-muted)">seeker → vacancy</text>
 
-        <text x="90" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">policy_match ≥ threshold</text>
-        <text x="300" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">manual or auto</text>
-        <text x="520" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">from PRS, auto</text>
-        <text x="730" y="80" text-anchor="middle" font-size="11" fill="var(--text-muted)">human release · L3</text>
+        <rect x="760" y="105" width="120" height="50" rx="6" fill="var(--fox)" stroke="var(--fox)" stroke-width="1.5"/>
+        <text x="820" y="124" text-anchor="middle" font-weight="500" font-size="12" fill="#fff">L3 resolved</text>
+        <text x="820" y="142" text-anchor="middle" font-size="11" fill="#fff" opacity="0.8">per intake × consent</text>
 
-        <rect x="200" y="195" width="140" height="35" rx="6" fill="var(--surface-2)" stroke="var(--border-accent)" stroke-width="1"/>
-        <text x="270" y="217" text-anchor="middle" font-size="11" fill="var(--text-muted)">declined / expired</text>
+        <!-- entry arrows -->
+        <line x1="195" y1="60" x2="238" y2="118" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="195" y1="190" x2="238" y2="142" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+        <!-- forward arrows -->
+        <line x1="385" y1="130" x2="415" y2="130" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="575" y1="130" x2="605" y2="130" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
+        <line x1="735" y1="130" x2="755" y2="130" stroke="currentColor" stroke-width="1.5" marker-end="url(#arr)"/>
 
-        <line x1="300" y1="155" x2="290" y2="190" stroke="var(--border-accent)" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr)"/>
+        <!-- terminals -->
+        <rect x="540" y="225" width="280" height="35" rx="6" fill="var(--surface-2)" stroke="var(--border-accent)" stroke-width="1"/>
+        <text x="680" y="247" text-anchor="middle" font-size="11" fill="var(--text-muted)">declined · not_advanced (L2 gate) · expired</text>
+        <line x1="650" y1="160" x2="660" y2="220" stroke="var(--border-accent)" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr)"/>
       </g>
     </svg>
   </div>
 
-  <p>Each transition is HMAC-signed (Stripe-style, with timestamp). Every event is idempotent — receivers deduplicate by <code>event_id</code>. The conversation can terminate at any state with <code>declined</code> or expire silently after the L1 TTL (default 14 days).</p>
+  <p>Each transition is HMAC-signed (Stripe-style, with timestamp). Every event is idempotent — receivers deduplicate by <code>event_id</code>. A conversation terminates as <code>declined</code> (a party said no), <code>not_advanced</code> (it failed the L2 validator gate), or <code>expired</code> (the L1 TTL lapsed, default 14 days). One conversation exists per <code>(seeker, vacancy)</code> pair: a direct apply to a vacancy already met in discovery attaches to the existing <code>conversation_id</code> and advances it — never a duplicate, never a reset.</p>
+</section>
+
+<section>
+  <h2 id="intake">Intake modes &amp; resolution<a class="anchor" href="#intake">#</a></h2>
+  <p>L3 — the crossing into identity — is a <strong>two-sided preference resolved at match time</strong>, not a fixed direction. The vacancy declares how it takes identity; the seeker declares whether identity may be disclosed without a human in the loop. Neither side can override the other.</p>
+
+  <p><strong>Vacancy intake</strong> (<code>l3_intake_mode</code> on the vacancy card): <code>on_request</code> — screened intake; receive L2, a human reviews and requests L3 per candidate. <code>on_match</code> — open intake; the L3 of any L2-eligible candidate <em>whose consent permits it</em> is auto-delivered to the vacancy's endpoint. Default <code>on_request</code>; an agent that does not understand the field treats it as <code>on_request</code>.</p>
+
+  <p><strong>Seeker consent</strong> (<code>consent_policy.agent_may_release_l3_without_human_review</code> on the seeker card, or an inline <code>l3_at_fit</code> on a direct application): <em>off</em> — the seeker is asked each time before identity is disclosed. <em>on</em> — the seeker has already said yes; disclosure fires without asking, and the seeker is told it happened.</p>
+
+  <table class="tier-table">
+    <thead><tr><th>Vacancy <code>l3_intake_mode</code></th><th>Seeker consent to auto-disclose</th><th>What happens at L2-eligible</th></tr></thead>
+    <tbody>
+      <tr><td class="tier-label">on_match</td><td>on</td><td>L3 auto-discloses to the vacancy endpoint; seeker receives an <code>l3_disclosed</code> signal naming where it went.</td></tr>
+      <tr><td class="tier-label">on_match</td><td>off</td><td>Seeker is asked (<code>l3_initiated</code> signal); on yes, L3 discloses.</td></tr>
+      <tr><td class="tier-label">on_request</td><td>on</td><td>Vacancy reviews L2 and requests; because the seeker pre-consented, release is frictionless.</td></tr>
+      <tr><td class="tier-label">on_request</td><td>off</td><td>Vacancy reviews L2 and requests; the seeker decides per request — mutual consent.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <p><strong>The seeker invariant.</strong> A vacancy's <code>on_match</code> preference never forces disclosure. Consent flows one direction — seeker to vacancy — always. The vacancy controls its own intake and cost; the seeker controls whether, and when, identity crosses.</p>
+  </div>
+
+  <p>The handshake delivers the L3 event to the conversation's registered endpoint and stops there. What a receiving product does with it — draft an outreach, create a recruiter-inbox row, fire a CRM webhook, or nothing — is operator-defined and outside the protocol. <strong>The handshake itself drafts and sends nothing.</strong> Likewise, whether and how any resolution is billed is each operator's own policy; the protocol carries no price.</p>
+
+  <h3 id="signals">Signals: who hears what<a class="anchor" href="#signals">#</a></h3>
+  <p>The governing rule for what gets reported back is one line:</p>
+  <div class="callout"><p><strong>Human interaction that creates signal is reported back to the counterparty; agent-scale discovery that no human acted on terminates silently.</strong></p></div>
+  <p>A passively-discoverable seeker fans across thousands of L1/L2 conversations; the overwhelming majority die quietly at the policy or validator gate. Reporting every one back would be the exact noise the protocol exists to remove — so ambient discovery failures are silent. Only meaningful, human-touched, or identity-crossing edges emit a <a href="signal.json"><code>signal</code></a>, delivered to the party it is owed to:</p>
+  <ul>
+    <li><code>l2_delivered</code> — L2 arrived at the vacancy.</li>
+    <li><code>l2_no_match</code> — a <em>direct</em> application failed the validator gate. Owed to the seeker <strong>only</strong> when the fire was <code>initiated_by: human</code> — they applied, they are owed an answer. An agent-discovery L2 failure is silent.</li>
+    <li><code>l3_initiated</code> — a poster reached for identity; the seeker is being asked.</li>
+    <li><code>l3_disclosed</code> — identity was released, <em>including</em> an auto-fire the seeker never witnessed. Always carries <code>destination</code> — where the identity went — the structural floor for invisible disclosure.</li>
+    <li><code>l2_refused</code> / <code>l3_refused</code> — a party said no. A refusal is a resolved signal, reported to the counterparty.</li>
+  </ul>
 </section>
 
 <section>
@@ -461,6 +506,14 @@
     <div class="schema-card">
       <h4><a href="l3-release.json">l3-release.json</a></h4>
       <p>Vacancy → seeker. The human handoff — hiring manager identity, compensation breakdown, calendar, internal context.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="seeker-application.json">seeker-application.json</a></h4>
+      <p>Seeker → vacancy, human-initiated (direct apply). An L1 fire with <code>initiated_by: human</code>; carries the per-pair collision rule and optional <code>l3_at_fit</code>.</p>
+    </div>
+    <div class="schema-card">
+      <h4><a href="signal.json">signal.json</a></h4>
+      <p>Conversation result event. Unified <code>signal_type</code> (l2_delivered, l3_initiated, l3_disclosed, l2_no_match, l2/l3_refused) delivered to the party it is owed to.</p>
     </div>
     <div class="schema-card">
       <h4><a href="directory.json">directory.json</a></h4>
