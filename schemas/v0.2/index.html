@@ -342,6 +342,8 @@
     </tbody>
   </table>
 
+  <p><strong>Application requirements — the readiness predicate on this grid.</strong> A vacancy may declare <a href="vacancy-card.json"><code>application_requirements</code></a>: materials the applicant <em>produces and delivers</em> (a portfolio link, a work sample, a written answer, a repo), as opposed to <code>l2_structured_questions</code> answered from the seeker's standing PRS. Their content is <strong>L3</strong> — at L2 each is only a <em>provided / not-provided</em> boolean. The grid above resolves only once the <code>required</code> requirements are satisfiable: if a <code>required</code> item is not provided, the match is <strong>not rejected</strong> — the seeker is <strong>invited to apply</strong> ("you match; provide X"), and providing X <em>is</em> the application and the situated L3 consent for this conversation. So even under <code>on_match</code> + consent <em>on</em>, L3 auto-discloses only when every <code>required</code> requirement is already satisfiable from the seeker's standing card; otherwise the seeker applies first. <code>wished</code> / <code>supporting</code> requirements never block. <em>Which</em> requirement types a standing card can pre-satisfy versus which demand an active apply is an operator implementation choice (the protocol fixes only the rule: <code>required &amp;&amp; not&nbsp;provided → invite&nbsp;to&nbsp;apply</code>).</p>
+
   <div class="callout">
     <p><strong>The seeker invariant.</strong> A vacancy's <code>on_match</code> preference never forces disclosure. Consent flows one direction — seeker to vacancy — always. The vacancy controls its own intake and cost; the seeker controls whether, and when, identity crosses.</p>
   </div>

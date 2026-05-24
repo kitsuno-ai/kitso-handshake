@@ -116,6 +116,29 @@
       "description": "Poster-authored free-form questions answered by seeker agent at L2 from PRS via LLM (e.g., 'Why this role?').",
       "items": { "type": "string" }
     },
+    "application_requirements": {
+      "type": "array",
+      "description": "Poster-authored materials the applicant PRODUCES and delivers (a portfolio link, a work sample, a written answer, a GitHub repo, etc.). DISTINCT from l2_structured_questions, which are answered from the seeker's existing PRS at L2. Application requirements are L3 CONTENT: the artifact itself never crosses at L2 — at L2 the vacancy agent sees only a per-requirement provided/not boolean. PROTOCOL RULES (any conforming implementation MUST honour these): (1) a requirement's content is L3 and is never disclosed below L3; (2) at L2 a requirement reduces to a provided/not-provided boolean; (3) importance=required && not provided => the match is NOT rejected — it becomes an INVITATION TO APPLY (the seeker is told 'you match; provide X to apply'), and the act of providing X IS the application and the per-vacancy L3 consent for this conversation; (4) importance=wished/supporting never block. Whether a requirement is 'provided' from a seeker's STANDING card vs. requires an active apply is an IMPLEMENTATION choice of each operator against their own card model — only requirement types that map unambiguously to a standing card field can be pre-satisfied; types whose relevant instance is per-vacancy (which repo, which certificate, which writing sample, free-text answers) are satisfied only by applying. Interacts with l3_intake_mode: even under on_match, L3 auto-delivery proceeds only when all required application_requirements are satisfiable (else the candidate is invited to apply first). Backward-compatible: absent = no application requirements. Foreign agents that do not understand this field MUST treat it as absent (no extra requirements).",
+      "items": {
+        "type": "object",
+        "required": ["type", "importance"],
+        "properties": {
+          "key": { "type": "string", "description": "Stable identifier for this requirement (often equals type)." },
+          "type": {
+            "type": "string",
+            "enum": ["free_text", "url", "portfolio", "work_sample", "github", "linkedin", "file_upload", "certificate", "publications"],
+            "description": "Kind of material requested. Note: identity-bearing types (linkedin, portfolio) are still L3 content like every other requirement — there is NO tier field; all requirement content is L3 by nature."
+          },
+          "importance": {
+            "type": "string",
+            "enum": ["required", "wished", "supporting"],
+            "description": "required = match cannot complete without it (invites apply if missing). wished = requested, never blocks. supporting = nice-to-have, never blocks."
+          },
+          "prompt": { "type": "string", "description": "Optional human-facing prompt shown to the applicant for this requirement." }
+        },
+        "additionalProperties": false
+      }
+    },
     "l2_delivery_channel": {
       "type": "string",
       "enum": ["email", "webhook", "kitsuno_inbox"],

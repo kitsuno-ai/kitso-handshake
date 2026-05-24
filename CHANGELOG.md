@@ -7,6 +7,34 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.4.1] — 2026-05-24
+
+Application requirements. A vacancy can now declare materials the applicant *produces and delivers* — distinct from the structured screening questions answered from existing PRS at L2. This formalises the boundary between "what your standing card already answers" and "what you must actively bring to this specific role."
+
+**Spec/protocol version bumps to v0.4.1; card wire-version stays v0.2.** Backward-compatible; absent field = no application requirements; unknown to foreign agents = treated as absent.
+
+### Added
+
+- **`vacancy-card.json` → `application_requirements`** (array of `{key?, type, importance, prompt?}`). Poster-authored materials the applicant produces (portfolio link, work sample, written answer, GitHub repo, certificate, publications, etc.). **These are L3 content** — the artifact never crosses at L2; at L2 the vacancy agent sees only a per-requirement provided/not boolean. There is deliberately **no tier field**: all requirement content is L3 by nature (anything an applicant authors about themselves is identity-bearing), so a tier choice would be a false one.
+  - **`type`**: `free_text | url | portfolio | work_sample | github | linkedin | file_upload | certificate | publications`.
+  - **`importance`**: `required | wished | supporting`.
+
+### Protocol rules (any conforming implementation MUST honour)
+
+1. A requirement's content is L3; it is never disclosed below L3.
+2. At L2 a requirement reduces to a **provided / not-provided boolean** — never the content.
+3. `importance=required && not provided` is **NOT a rejection** — it is an **invitation to apply** ("you match; provide X to apply"). The act of providing X *is* the application and the per-vacancy L3 consent for that conversation (a situated yes, like `l3_at_fit`; it does not modify standing consent).
+4. `importance=wished` / `supporting` never block a match.
+5. Interacts with `l3_intake_mode`: even under `on_match`, L3 auto-delivery proceeds only when **all required application_requirements are satisfiable**; otherwise the candidate is invited to apply first.
+
+### Implementation boundary (operator-defined, NOT protocol)
+
+Whether a requirement is "provided" from a seeker's **standing card** versus requires an active apply is each operator's choice against their own card model. Only requirement types that map unambiguously to a standing card field can be pre-satisfied; types whose relevant instance is **per-vacancy** (which repo, which certificate, which writing sample, a free-text answer) are satisfied only by applying. The protocol fixes the *rule* (`required && !provided → invite-to-apply`); the *resolution* of the boolean is implementation. Kitsuno's reference implementation pre-satisfies only `portfolio` and `linkedin` (exact standing-card URL fields); all other types are apply-only.
+
+### Federation impact
+
+Degrades gracefully. A v0.2/v0.4.0-aware foreign agent that does not understand `application_requirements` treats it as absent (no extra requirements) and behaves exactly as before. No well-known, cards-feed, or schema-path changes; no re-signing of existing cards.
+
 ## [v0.4.0] — 2026-05-23
 
 Consent-symmetric handshake. The protocol stops being discovery-only and one-directional: either party can now initiate, and disclosure is a two-sided preference resolved at match time rather than a hardwired vacancy→seeker direction. This is the conceptual boundary where Handshake became bidirectional.
