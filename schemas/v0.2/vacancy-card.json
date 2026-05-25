@@ -171,7 +171,12 @@
       "description": "For mirror cards, the source provider name (e.g., 'linkedin', 'indeed'). Not present on primary cards."
     },
     "supersedes_card_id": { "type": "string", "format": "uuid" },
-    "superseded_by_card_id": { "type": "string", "format": "uuid" }
+    "superseded_by_card_id": { "type": "string", "format": "uuid" },
+    "takedown_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional GDPR/erasure affordance — where an applicant, seeker agent, or data subject can request takedown or erasure of this posting and any data derived from interacting with it. Backward-compatible: absent = no machine-readable takedown endpoint advertised. Foreign agents that do not understand this field MUST treat it as absent."
+    }
   },
   "additionalProperties": false,
   "allOf": [

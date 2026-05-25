@@ -7,6 +7,20 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.4.2] — 2026-05-25
+
+Takedown affordance. A vacancy card can now advertise a machine-readable GDPR/erasure endpoint, so an applicant, seeker agent, or data subject can find where to request takedown of the posting and any data derived from interacting with it — without out-of-band lookup.
+
+**Spec/protocol version bumps to v0.4.2; card wire-version stays v0.2.** Backward-compatible; absent field = no advertised takedown endpoint; unknown to foreign agents = treated as absent.
+
+### Added
+
+- **`vacancy-card.json` → `takedown_url`** (string, `format: uri`, optional). Where to request takedown/erasure of this posting and derived data. Complements the consent-first model: the same way a seeker controls disclosure, the poster surface advertises how its footprint can be erased.
+
+### Federation impact
+
+Degrades gracefully. A v0.4.1-aware (or older) foreign agent that does not understand `takedown_url` treats it as absent and behaves exactly as before. No well-known, cards-feed, schema-path, or signature changes; no re-signing of existing cards.
+
 ## [v0.4.1] — 2026-05-24
 
 Application requirements. A vacancy can now declare materials the applicant *produces and delivers* — distinct from the structured screening questions answered from existing PRS at L2. This formalises the boundary between "what your standing card already answers" and "what you must actively bring to this specific role."
