@@ -7,6 +7,31 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.4.3] — 2026-05-25
+
+Symmetric geography. The vacancy card gains a geographic *scope* mirroring the seeker card's `geography.scope`, so a vacancy can declare it hires **globally** (anywhere) rather than being forced to enumerate an explicit country list. This closes an asymmetry: seekers could already say "global", vacancies could not — yet the protocol serves vacancies anywhere, not only in Europe.
+
+**Spec/protocol version bumps to v0.4.3; card wire-version stays v0.2.** Backward-compatible; absent `geo_scope` = `regions`, so existing cards behave exactly as before.
+
+### Added
+
+- **`vacancy-card.json` → `geo_scope`** (enum `global | regions`, default `regions`). `global` = open anywhere, no country gate; `regions` = restricted to the explicit `country_codes` list. Mirrors `seeker-card.json` `geography.scope`.
+- **`vacancy-card.json` → `country_codes_excluded`** (array of ISO alpha-2). Countries excluded even under `global` or a broad list (e.g. all of Europe except IT, or global except sanctioned jurisdictions). Exclusions always win. Mirrors `seeker-card.json` `geography.countries_excluded`.
+
+### Changed
+
+- **`country_codes` is now conditionally required**: required when `geo_scope` is `regions` (the default), optional when `geo_scope` is `global`. Previously unconditionally required. This is backward-compatible for all existing `regions`/absent-scope cards.
+
+### Protocol rules (any conforming implementation MUST honour)
+
+1. `geo_scope=global` means no country gate: a candidate is never rejected on geography alone (subject to `country_codes_excluded`).
+2. `country_codes_excluded` always wins, under either scope.
+3. Foreign agents that do not understand `geo_scope` MUST treat it as `regions` and use `country_codes` as before.
+
+### Federation impact
+
+Degrades gracefully. A v0.4.2-aware (or older) foreign agent ignores `geo_scope`/`country_codes_excluded` and reads `country_codes` exactly as before — and since `global` cards are the only ones that may omit `country_codes`, the worst case for an old agent is treating a global role as having no listed countries (no false matches). No well-known, cards-feed, schema-path, or signature changes.
+
 ## [v0.4.2] — 2026-05-25
 
 Takedown affordance. A vacancy card can now advertise a machine-readable GDPR/erasure endpoint, so an applicant, seeker agent, or data subject can find where to request takedown of the posting and any data derived from interacting with it — without out-of-band lookup.

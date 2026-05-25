@@ -13,7 +13,6 @@
     "seniority_level",
     "employment_type",
     "remote_type",
-    "country_codes",
     "skills",
     "languages_required",
     "description",
@@ -36,12 +35,24 @@
     "employment_type": { "$ref": "common.json#/$defs/EmploymentType" },
     "remote_type": { "$ref": "common.json#/$defs/RemoteType" },
     "city": { "type": "string" },
+    "geo_scope": {
+      "type": "string",
+      "enum": ["global", "regions"],
+      "default": "regions",
+      "description": "Geographic hiring scope, mirroring seeker-card geography.scope. 'global' = role is open anywhere (no country gate; country_codes optional/ignored for gating). 'regions' = restricted to the explicit country_codes list. Backward-compatible: absent = 'regions', so existing cards behave unchanged. Foreign agents that do not understand this field MUST treat it as 'regions'."
+    },
     "country_codes": {
       "type": "array",
       "items": { "$ref": "common.json#/$defs/IsoCountryCode" },
       "minItems": 1,
       "uniqueItems": true,
-      "description": "One or more ISO 3166-1 alpha-2 codes."
+      "description": "One or more ISO 3166-1 alpha-2 codes the role accepts. REQUIRED when geo_scope is 'regions' (the default); omitted/ignored when geo_scope is 'global'."
+    },
+    "country_codes_excluded": {
+      "type": "array",
+      "items": { "$ref": "common.json#/$defs/IsoCountryCode" },
+      "uniqueItems": true,
+      "description": "Countries explicitly excluded even under a 'global' scope or a broad regions list (e.g. open to all of Europe except IT, or global except sanctioned jurisdictions). Exclusions always win, mirroring seeker-card geography.countries_excluded."
     },
     "skills": {
       "type": "array",
@@ -180,6 +191,12 @@
   },
   "additionalProperties": false,
   "allOf": [
+    {
+      "if": {
+        "not": { "properties": { "geo_scope": { "const": "global" } }, "required": ["geo_scope"] }
+      },
+      "then": { "required": ["country_codes"] }
+    },
     {
       "if": { "properties": { "posting_visibility": { "const": "named" } } },
       "then": { "required": ["company_name"] }
