@@ -30,7 +30,7 @@
       "description": "primary = published by an authenticated vacancy_account (P1/P2/P3). mirror = scraped from a third-party source by Kitsuno's mirror generator (read-only, L1 only, no L2/L3 reachable)."
     },
     "title": { "type": "string", "minLength": 1, "maxLength": 200 },
-    "role_family": { "type": "string", "description": "Coarse role classification (engineering, design, product, marketing, ops, sales, support, hr, finance, legal, executive)." },
+    "role_family": { "type": "string", "description": "Coarse FUNCTION axis \u2014 what kind of work, not which sector. A soft input to the validator role_alignment dimension; it is NOT a policy_match (L1) gate and never blocks a handshake on its own. Free string; the example values are illustrative, not an enumeration. Implementers SHOULD map to a stable function taxonomy (Kitsuno uses a canonical ~23-family set) so cross-operator matching is clean." },
     "seniority_level": { "$ref": "common.json#/$defs/SeniorityLevel" },
     "employment_type": { "$ref": "common.json#/$defs/EmploymentType" },
     "remote_type": { "$ref": "common.json#/$defs/RemoteType" },
@@ -80,7 +80,7 @@
     "salary_period": { "type": "string", "enum": ["hour", "day", "month", "year"] },
     "description": { "type": "string", "description": "Short L1 description / lede (≤2000 chars recommended)." },
     "description_full": { "type": "string", "description": "Extended description; default L2 unless poster moves to L1." },
-    "industry_label": { "type": "string", "description": "Surfaced even when posting_visibility=confidential to give seeker signal." },
+    "industry_label": { "type": "string", "description": "Coarse SECTOR axis \u2014 which industry, not which function. A soft input to the validator context_fit dimension; it is NOT a policy_match (L1) gate. Free string (NOT enumerated); implementers SHOULD classify the posting into a stable sector taxonomy (Kitsuno classifies to NACE Rev.2 sections) so it aligns with seeker-side sector signals. Surfaced even when posting_visibility=confidential to give the seeker signal." },
     "posting_visibility": { "$ref": "common.json#/$defs/PostingVisibility" },
     "company_name": {
       "type": "string",

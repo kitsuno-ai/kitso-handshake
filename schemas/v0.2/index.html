@@ -402,8 +402,10 @@
     <li><code>role_alignment</code> — does the work itself overlap, beyond role family?</li>
     <li><code>seniority_fit</code> — does the seniority expectation match the seeker's range?</li>
     <li><code>skill_overlap</code> — substantive overlap, not just keyword surface?</li>
-    <li><code>context_fit</code> — country, language, employment shape, work mode?</li>
+    <li><code>context_fit</code> — country, language, employment shape, work mode, and industry/sector (<code>industry_label</code>) overlap?</li>
   </ul>
+
+  <p><strong>Two coarse axes, both soft.</strong> A card is summarised on two coarse axes — <code>role_family</code> (the function: what kind of work) and <code>industry_label</code> (the sector: which industry). Neither is a <code>policy_match</code> (L1) gate; neither ever blocks a handshake. They are inputs the validator weighs at L2: <code>role_family</code> into <code>role_alignment</code>, <code>industry_label</code> into <code>context_fit</code>. An explicit overlap strengthens fit and a confident mismatch weakens it, but absence on either side is neutral and never a penalty. The hard L1 gates are exactly the deterministic <code>policy_match</code> criteria — geography/work-permit, required languages, must-have skills, minimum years, remote compatibility. The seeker publishes only the function axis (<code>role_targets[].role_family</code>); a seeker’s sector preference is a private agent-side ranking signal in v0.2, not a published field.</p>
 
   <p>A <code>low_signal</code> flag is set automatically when the vacancy description is shorter than ~800 characters — distinguishing <em>weak fit because the data is thin</em> from <em>weak fit because actually weak</em>. Operators tune this threshold to their corpus.</p>
 

@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Current draft** | v0.4.3 — published 2026-05-25 |
+| **Current draft** | v0.4.4 — published 2026-06-02 |
 | **Prior draft** | v0.1 — May 2026, available for reference |
 | **License** | Apache License 2.0 |
 | **Author** | Gregory Turkawka (Kitsuno) |

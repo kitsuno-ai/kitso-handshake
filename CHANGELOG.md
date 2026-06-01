@@ -7,6 +7,31 @@ Once v1.0 is released, this project will adhere to [Semantic Versioning](https:/
 Until then, breaking changes between minor versions are expected.
 
 
+## [v0.4.4] — 2026-06-02
+
+Matching axes made explicit. Clarifies — without changing the wire format — how the two coarse axes a card is summarised on (**function** = `role_family`, **sector** = `industry_label`) relate to the matching machinery, closing a long-standing ambiguity about whether either is a hard filter. Neither is. The hard L1 gate is exactly `policy_match`; the two axes are soft signals the validator weighs at L2.
+
+**Spec/protocol version bumps to v0.4.4; card wire-version stays v0.2.** Description-only on the schemas plus additive prose; no fields added, removed, renamed, or enumerated. Fully backward-compatible — every existing card validates unchanged.
+
+### Changed
+
+- **`vacancy-card.json` → `role_family` description**: now states it is the coarse **function** axis, a soft input to the validator `role_alignment` dimension, NOT a `policy_match` gate; example values are illustrative, not an enumeration; implementers SHOULD map to a stable function taxonomy.
+- **`vacancy-card.json` → `industry_label` description**: now states it is the coarse **sector** axis, a soft input to the validator `context_fit` dimension, NOT a `policy_match` gate; a free string (not enumerated); implementers SHOULD classify postings into a stable sector taxonomy (Kitsuno uses NACE Rev.2 sections) so it aligns with seeker-side sector signals.
+- **`seeker-card.json` → `role_targets[].role_family` description**: added — the coarse function axis the seeker targets, matched soft (never a hard gate) against the vacancy `role_family`/title.
+- **`index.html`**: the `context_fit` dimension now lists industry/sector overlap; a new paragraph states the two-axes-both-soft contract.
+
+### Protocol rules (any conforming implementation MUST honour)
+
+1. `role_family` and `industry_label` are NEVER `policy_match` (L1) gates. A role or sector mismatch MUST NOT block `l1_fired`.
+2. The hard L1 gates are exactly the deterministic `policy_match` criteria: geography/work-permit, required languages, must-have skills, minimum years, remote compatibility.
+3. The two axes are soft validator inputs at L2: `role_family` → `role_alignment`, `industry_label` → `context_fit`. Explicit overlap strengthens fit; a confident mismatch weakens it; **absence on either side is neutral and MUST NOT be scored as a penalty.**
+4. `industry_label` is a free string. Operators SHOULD draw from a stable, shared sector taxonomy for cross-operator alignment, but conformance MUST NOT require any specific enumeration.
+5. The sector axis is asymmetric in v0.2: a vacancy publishes `industry_label`; the public seeker card has no sector field, so a seeker sector preference is a private agent-side ranking signal. A future minor MAY add an optional seeker sector field once production implementations emit one.
+
+### Federation impact
+
+None. Description-only schema changes plus additive prose; no well-known, cards-feed, schema-path, field, enum, or signature changes. A foreign agent of any prior version reads every card exactly as before.
+
 ## [v0.4.3] — 2026-05-25
 
 Symmetric geography. The vacancy card gains a geographic *scope* mirroring the seeker card's `geography.scope`, so a vacancy can declare it hires **globally** (anywhere) rather than being forced to enumerate an explicit country list. This closes an asymmetry: seekers could already say "global", vacancies could not — yet the protocol serves vacancies anywhere, not only in Europe.

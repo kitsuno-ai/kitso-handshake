@@ -39,7 +39,8 @@
         ],
         "properties": {
           "role_family": {
-            "type": "string"
+            "type": "string",
+            "description": "Coarse FUNCTION axis \u2014 the kind of work the seeker targets. Matched soft (never a hard gate) against the vacancy role_family/title via the validator role_alignment dimension. SHOULD draw from the same stable function taxonomy operators use for vacancy role_family. The SECTOR axis has no public seeker-card field in v0.2 \u2014 a seeker sector preference is a private agent-side ranking signal; see CHANGELOG v0.4.4."
           },
           "role_title_keywords": {
             "type": "array",
