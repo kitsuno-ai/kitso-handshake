@@ -1,0 +1,15 @@
+{
+  "name": "Kitso Handshake",
+  "spec_version": "v0.4.4",
+  "spec_published": "2026-06-02",
+  "wire_version": "v0.2",
+  "wire_path": "/handshake/v0.2/",
+  "reference_transport": "A2A v1.0",
+  "prior_drafts": ["v0.1"],
+  "schemas_base": "https://kitsuno.ai/handshake/v0.2/",
+  "well_known_path": "/.well-known/handshake-v0.2.json",
+  "repo": "https://github.com/kitsuno-ai/kitso-handshake",
+  "reference_implementation": "https://github.com/kitsuno-ai/kitso-handshake-agents",
+  "license": "Apache-2.0",
+  "_note": "Single source of truth for Kitso Handshake versions. spec_version is the protocol/model version (README + CHANGELOG); wire_version is the frozen on-the-wire format (schema $id paths, well-known path, and the well-known 'protocol_version' const). They are intentionally decoupled — every change since v0.2 is additive and backward-compatible on the same wire schemas. README, CHANGELOG, schemas, and the operator well-known doc MUST agree with this file; tools/validate_protocol.py enforces that in CI."
+}

@@ -7,6 +7,10 @@
   "required": ["protocol_version", "operator_name", "endpoints"],
   "properties": {
     "protocol_version": { "type": "string", "const": "v0.2" },
+    "spec_version": {
+      "type": "string",
+      "description": "Optional. The spec/protocol version this operator implements (e.g. 'v0.4.4'), distinct from protocol_version (the frozen wire-format version). Advisory only — foreign agents key compatibility off protocol_version, not this field."
+    },
     "operator_name": {
       "type": "string",
       "description": "Display name of the operator hosting this endpoint set (e.g., 'Kitsuno', 'Acme ATS')."

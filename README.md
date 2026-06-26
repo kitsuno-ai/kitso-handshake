@@ -34,7 +34,8 @@ card *wire* version are deliberately decoupled. The wire format, schema paths,
 and well-known URL stay pinned at `v0.2` so federated operators never re-fetch
 from new URLs on a minor bump; every change since v0.2 is additive and
 backward-compatible, so existing cards validate unchanged. Full history in
-[CHANGELOG.md](CHANGELOG.md).
+[CHANGELOG.md](CHANGELOG.md); the canonical machine-readable version statement is
+[`protocol.json`](protocol.json).
 
 ## What the spec covers
 
@@ -95,6 +96,7 @@ to use on real people's careers.
 ## Repository layout
 
 ```
+protocol.json                   Version manifest — single source of truth for spec_version + wire_version
 schemas/v0.2/index.html         Canonical spec page — current draft v0.4.4 (served at kitsuno.ai/handshake/v0.2/)
 schemas/v0.2/*.json             Wire-format JSON Schemas, pinned at v0.2 (2020-12 draft)
 spec/v0.1/                      Prior draft markdown (v0.1, reference only)

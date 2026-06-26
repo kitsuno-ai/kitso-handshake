@@ -1,0 +1,52 @@
+name: conformance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # daily live-conformance sweep against production
+    - cron: "17 6 * * *"
+
+jobs:
+  consistency:
+    # Schema validity + $id paths + protocol.json agrees with README/CHANGELOG/well-known.
+    # Blocking on every push and PR.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install jsonschema
+      - name: Validate every schema parses and self-references correctly
+        run: |
+          python - <<'PY'
+          import json, sys, glob
+          from jsonschema import Draft202012Validator
+          bad = 0
+          for f in glob.glob("schemas/**/*.json", recursive=True):
+              s = json.load(open(f))
+              try:
+                  Draft202012Validator.check_schema(s)
+              except Exception as e:
+                  print(f"{f}: invalid schema: {e}"); bad += 1
+          sys.exit(1 if bad else 0)
+          PY
+      - name: protocol.json consistency
+        run: python tools/validate_protocol.py
+
+  live-conformance:
+    # Fetches the live Kitsuno operator instance and validates it against the
+    # schemas in this repo. Scheduled + manual only (depends on the public site),
+    # so it never blocks a PR on an external dependency.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install jsonschema
+      - run: python tools/check_live_conformance.py --base https://kitsuno.ai
