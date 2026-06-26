@@ -24,15 +24,23 @@ It rests on three commitments:
 2. **Agents represent rather than substitute.**
 3. **Consent is the boundary that protects agency.**
 
-The current draft is at [`spec/v0.2/`](spec/v0.2/) and rendered at
-[kitsuno.ai/handshake/v0.2/](https://kitsuno.ai/handshake/v0.2/). JSON Schemas
-declare their `$id` at the same URL so validators resolve `$ref` between them
-without any local fetching.
+The current draft (v0.4.4) is rendered at
+[kitsuno.ai/handshake/v0.2/](https://kitsuno.ai/handshake/v0.2/), with its source
+in [`schemas/v0.2/`](schemas/v0.2/). JSON Schemas declare their `$id` at that URL
+so validators resolve `$ref` between them without any local fetching.
 
-## What v0.2 adds
+**Protocol version vs. wire version.** The spec/protocol version (v0.4.4) and the
+card *wire* version are deliberately decoupled. The wire format, schema paths,
+and well-known URL stay pinned at `v0.2` so federated operators never re-fetch
+from new URLs on a minor bump; every change since v0.2 is additive and
+backward-compatible, so existing cards validate unchanged. Full history in
+[CHANGELOG.md](CHANGELOG.md).
 
-v0.2 evolves v0.1's foundational commitments into a fully specified handshake
-between agents:
+## What the spec covers
+
+The protocol evolves v0.1's foundational commitments into a fully specified
+handshake between agents. The v0.2 baseline is below; later additions are tagged
+with the version that introduced them:
 
 - **Three disclosure tiers (L1, L2, L3)** mapping to the recruiter funnel —
   public ad, screening form, human handoff. Posters configure per-field which
@@ -59,7 +67,7 @@ between agents:
   classifies every conversation after L2 disclosure as `strong_fit`, `weak_fit`,
   or `no_fit` across four structured dimensions. Only `strong_fit` reaches a
   human — WEAK and NO_FIT are silent drops. The pipeline is a commitment
-  surface, not a feed. See [`spec/v0.2/`](https://kitsuno.ai/handshake/v0.2/#validator)
+  surface, not a feed. See [the `#validator` section](https://kitsuno.ai/handshake/v0.2/#validator)
   and reference implementation at
   [`packages/handshake-validator`](https://github.com/kitsuno-ai/kitso-handshake-agents/tree/main/packages/handshake-validator).
 - **Discovery layer formalized** (v0.3.0): the `cards_index` URL that each
@@ -87,10 +95,9 @@ to use on real people's careers.
 ## Repository layout
 
 ```
-spec/v0.2/                      Current protocol specification
-spec/v0.1/                      Prior draft (reference only)
-schemas/v0.2/*.json             v0.2 JSON Schemas (2020-12)
-schemas/v0.2/index.html         Canonical spec page (served at kitsuno.ai/handshake/v0.2/)
+schemas/v0.2/index.html         Canonical spec page — current draft v0.4.4 (served at kitsuno.ai/handshake/v0.2/)
+schemas/v0.2/*.json             Wire-format JSON Schemas, pinned at v0.2 (2020-12 draft)
+spec/v0.1/                      Prior draft markdown (v0.1, reference only)
 schemas/v0.1/*.json             v0.1 JSON Schemas
 examples/v0.1/*.json            v0.1 example payloads
 CONTRIBUTING.md                 How to give feedback
@@ -100,7 +107,7 @@ LICENSE                         Apache License 2.0
 
 ## Reference implementation
 
-A reference implementation of v0.2 (Python) is at
+A reference implementation of the protocol (Python) is at
 [`kitsuno-ai/kitso-handshake-agents`](https://github.com/kitsuno-ai/kitso-handshake-agents),
 Apache 2.0. Kitsuno operates the production implementation at
 [kitsuno.ai](https://kitsuno.ai). Neither the protocol nor the implementations
@@ -110,8 +117,10 @@ require running Kitsuno's infrastructure.
 
 - **v0.1 (May 2026)** — initial draft, invited reviewer feedback, available for
   reference.
-- **v0.2 (current draft)** — disclosure tiers, state machine, federation
-  primitives. Breaking changes from v0.1 are expected as feedback comes in.
+- **v0.4.4 (current draft, 2026-06-02)** — disclosure tiers, state machine,
+  federation primitives, geo scoping, application requirements, and takedown
+  signalling, layered additively over the v0.2 wire format. See
+  [CHANGELOG.md](CHANGELOG.md) for the full v0.2 → v0.4.4 history.
 - **v1.0** — first stable release; conformance test suite; governance moved
   toward a community-stewarded model.
 
