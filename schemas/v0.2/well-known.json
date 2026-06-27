@@ -6,6 +6,10 @@
   "type": "object",
   "required": ["protocol_version", "operator_name", "endpoints"],
   "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional. URI of the schema this document declares conformance to (self-description for editors and validators)."
+    },
     "protocol_version": { "type": "string", "const": "v0.2" },
     "spec_version": {
       "type": "string",

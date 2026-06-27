@@ -14,7 +14,9 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from jsonschema import Draft202012Validator, RefResolver
+from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
+from referencing.jsonschema import DRAFT202012
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -27,13 +29,13 @@ def fetch_json(url: str):
 
 def validator_for(schema_path: Path) -> Draft202012Validator:
     schema = json.loads(schema_path.read_text())
-    store = {}
+    resources = []
     for f in schema_path.parent.glob("*.json"):
         s = json.loads(f.read_text())
         if "$id" in s:
-            store[s["$id"]] = s
-    resolver = RefResolver(base_uri=schema.get("$id", ""), referrer=schema, store=store)
-    return Draft202012Validator(schema, resolver=resolver)
+            resources.append((s["$id"], Resource.from_contents(s, default_specification=DRAFT202012)))
+    registry = Registry().with_resources(resources)
+    return Draft202012Validator(schema, registry=registry)
 
 
 def main() -> int:
@@ -51,13 +53,12 @@ def main() -> int:
     try:
         wk = fetch_json(wk_url)
         v = validator_for(sdir / "well-known.json")
-        errs = sorted(v.iter_errors(wk), key=lambda e: e.path)
+        errs = sorted(v.iter_errors(wk), key=lambda e: list(e.path))
         if errs:
             failures.append((wk_url, [f"{list(e.path)}: {e.message}" for e in errs]))
         else:
             print(f"OK   {wk_url}  (protocol_version={wk.get('protocol_version')}, "
                   f"spec_version={wk.get('spec_version', '—')})")
-        # advisory: spec_version, if present, should equal the manifest
         if wk.get("spec_version") and wk["spec_version"] != manifest["spec_version"]:
             failures.append((wk_url, [f"spec_version {wk['spec_version']} != manifest "
                                       f"{manifest['spec_version']}"]))
@@ -75,7 +76,7 @@ def main() -> int:
             if sample and sample.get("uri"):
                 card = fetch_json(sample["uri"])
                 v = validator_for(sdir / "vacancy-card.json")
-                errs = sorted(v.iter_errors(card), key=lambda e: e.path)
+                errs = sorted(v.iter_errors(card), key=lambda e: list(e.path))
                 if errs:
                     failures.append((sample["uri"], [f"{list(e.path)}: {e.message}" for e in errs]))
                 else:
